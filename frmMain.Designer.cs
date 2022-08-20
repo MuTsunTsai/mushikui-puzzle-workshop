@@ -239,7 +239,7 @@
 			// 
 			this.tbInput.Dock=System.Windows.Forms.DockStyle.Top;
 			this.tbInput.Location=new System.Drawing.Point(0, 36);
-			this.tbInput.MaxLength=327670000;
+			this.tbInput.MaxLength=3276700;
 			this.tbInput.Multiline=true;
 			this.tbInput.Name="tbInput";
 			this.tbInput.ScrollBars=System.Windows.Forms.ScrollBars.Vertical;
@@ -273,7 +273,7 @@
 			// 
 			// notifyIcon
 			// 
-			this.notifyIcon.Text="Mushikui Puzzle Workshop";
+			this.notifyIcon.Text="Mushikui Puzzle Workshop (Transposition Table Edition)";
 			this.notifyIcon.MouseDoubleClick+=new System.Windows.Forms.MouseEventHandler(this.notifyIcon_MouseDoubleClick);
 			// 
 			// frmMain
@@ -290,7 +290,7 @@
 			this.MinimumSize=new System.Drawing.Size(645, 450);
 			this.Name="frmMain";
 			this.StartPosition=System.Windows.Forms.FormStartPosition.CenterScreen;
-			this.Text="Mushikui Puzzle Workshop";
+			this.Text="Mushikui Puzzle Workshop (Transposition Table Edition)";
 			this.Load+=new System.EventHandler(this.frmMain_Load);
 			this.FormClosing+=new System.Windows.Forms.FormClosingEventHandler(this.frmMain_FormClosing);
 			this.Resize+=new System.EventHandler(this.frmMain_Resize);
