@@ -33,9 +33,9 @@ namespace Mushikui_Puzzle_Workshop {
 			notifyIcon.Icon=Icon;
 			notifyIcon.Text=Text;
 
-			//EN=new chessEngine("rnb1k1nr/pppp1p1p/4p3/q7/1b6/2PP4/4PPPP/RN1QKBNR b KQkq - 0 6");
+			EN=new chessEngine("rnbq3r/ppp1kp1p/7p/4P3/8/b7/PPP1PPPP/2KR1BNR w - - 0 7");
 
-			tstbFEN.Text=chessEngine.initFEN;			
+			tstbFEN.Text=chessEngine.initFEN;
 		}
 
 		/////////////////////////////////
@@ -171,47 +171,35 @@ namespace Mushikui_Puzzle_Workshop {
 		/////////////////////////////////
 		// 調換表（transposition table）
 		/////////////////////////////////
-
-		private const uint	transTableSize=1<<chessEngine.hashBits;
-		private const int	branchSizeLowerBound=10;	// 設置下限，防止後續分歧太小的局面被加入調換表
+		
+		private const int hashBits=23;				// 此數值決定要開多大的調換表，2^23 是很理想的大小
+		private const int branchSizeLowerBound=10;	// 設置下限，防止後續分歧太小的局面被加入調換表
+		private const int lengthLimit=200;			// 設定搜尋題目的最長上界
 
 		private ComputerInfo CInfo=new ComputerInfo();
 
-		private byte[,]	transTable;
-		private byte[]	transState;	// 0 未初始化 1 未知 2 無解 3 有解
-		private byte[]	posTemp=new byte[chessEngine.posDataSize];
+		private HashTable<bool> transTable=new HashTable<bool>(hashBits, chessEngine.posDataSize);		// false=無解 true=有解
 
-		private int[]	hashHis;
 		private int[]	branchSize;
-		private int[]	hasSolHis;
+		private bool[]	hasSolution;	// 目前的 DFS 當中各層是否有解
 
 		private int posCount, transCount, collCount;
 		
 		private void initTransTable() {
-			transTable=new byte[transTableSize, chessEngine.posDataSize];
 			transTable.Initialize();
-			transState=new byte[transTableSize];
-			transState.Initialize();
-			
-			// 下列三個陣列不用初始化，因為程式執行過程中會自動配值
-			hashHis=new int[chessEngine.maxDepth];
+						
+			// 下列兩個陣列不用初始化，因為程式執行過程中會自動配值
 			branchSize=new int[chessEngine.maxDepth];
-			hasSolHis=new int[chessEngine.maxDepth];
+			hasSolution=new bool[chessEngine.maxDepth];
 			
 			posCount=0; transCount=0; collCount=0;
 		}
 		private void clearTransTable() {	// 將調換表狀態全部設為未初化，但不重新配置調換表本身的記憶體
-			transState=null;
-			GC.Collect();
-			transState=new byte[transTableSize];
-			transState.Initialize();
+			transTable.Clear();
 			posCount=0; transCount=0; collCount=0;
 		}
 		private void delTransTable() {	// 釋放記憶體
-			transTable=null;
-			transState=null;
-			hashHis=null;
-			GC.Collect();
+			transTable.Delete();
 		}
 		private bool checkMemoryFail() {
 			if(CInfo.AvailablePhysicalMemory<367001600) {
@@ -232,14 +220,14 @@ namespace Mushikui_Puzzle_Workshop {
 			startSearch();
 			if(checkMemoryFail()) return;
 					
-			for(i=0;i<prob.Length&&l<500;i++) {
+			for(i=0;i<prob.Length&&l<lengthLimit;i++) {
 				if(prob[i]=='?') goal[l++]=1;
 				else if(prob[i]=='*') {
 					for(j=0;i<prob.Length&&prob[i]=='*';i++,j++);
 					goal[l++]=j;
 				}
 			}
-			if(l==500) MessageBox.Show("Input problem exceed length 500 limit. The problem will not be processed.");
+			if(l==lengthLimit) MessageBox.Show("Input problem exceed length "+lengthLimit+" limit. The problem will not be processed.");
 			else {
 				initTransTable();	
 				goalLength=l;
@@ -249,7 +237,7 @@ namespace Mushikui_Puzzle_Workshop {
 						MessageBox.Show("Inputed FEN is not a legal position: "+EN.positionErrorText);
 						stopSearch();
 					}
-					I=0; C=0; J[0]=0; branchSize[0]=1; hasSolHis[0]=0;
+					I=0; C=0; J[0]=0; branchSize[0]=1; hasSolution[0]=false;
 					while(!STOP&&runSearch()) {
 						TOC+=EN.legalMovesLength;
 						if(TOC>TOL&&I>1) {
@@ -269,7 +257,6 @@ namespace Mushikui_Puzzle_Workshop {
 #endif
 		}
 		private bool runSearch() {
-			int hash;
 			if(I==goalLength&&!foundSolution(false)) return false;
 			while(goal[I]>1&&J[I]<EN.legalMovesLength&&EN.legalMovesSL(J[I])!=goal[I]) J[I]++;
 			if(J[I]==EN.legalMovesLength) {
@@ -279,29 +266,20 @@ namespace Mushikui_Puzzle_Workshop {
 					return false;
 				} else {
 					if(I>2) {
-						hash=hashHis[I];
 						if(branchSize[I]>branchSizeLowerBound) {			// 後續分歧太小的話就不要管，減少無謂局面的記錄，從根本減少碰撞發生率
-							if(transState[hash]==0) {						// 不做碰撞處理，只有當欄位沒有被佔據的時候才繼續
-								Buffer.BlockCopy(EN.positionData, 0, transTable, hash*chessEngine.posDataSize, chessEngine.posDataSize);
-								transState[hash]=(byte)(hasSolHis[I]==0?2:3);
-								posCount++;
-							} else collCount++;
+							if(transTable.Insert(EN.positionData, hasSolution[I])) posCount++;
+							else collCount++;
 						}
 					}
 					runRetract();
 				}
 			} else {
-				EN.play(J[I]); I++; J[I]=0; branchSize[I]=1; hasSolHis[I]=0;
+				EN.play(J[I]); I++; J[I]=0; branchSize[I]=1; hasSolution[I]=false;
 				if(I>2) {
-					hash=(int)EN.hash;
-					hashHis[I]=hash;
-					if(transState[hash]!=0) {
-						Buffer.BlockCopy(transTable, hash*chessEngine.posDataSize, posTemp, 0, chessEngine.posDataSize);
-						if(posTemp.SequenceEqual(EN.positionData)) {
-							transCount++;
-							if(transState[hash]==3&&!foundSolution(true)) return false;
-							if(transState[hash]==2) runRetract();
-						}
+					if(transTable.LookUp(EN.positionData)) {
+						transCount++;
+						if(transTable.Value&&!foundSolution(true)) return false;
+						if(!transTable.Value) runRetract();
 					}
 				}
 			}
@@ -311,7 +289,7 @@ namespace Mushikui_Puzzle_Workshop {
 		private bool foundSolution(bool trans) {
 			int i;
 			tbOutput.Text+=EN.PGN+(trans?"transposition":"")+"\r\n"+(tsbtShowFEN.Checked?EN.FEN+"\r\n":"");
-			for(i=I;i>=0&&hasSolHis[i]==0;i--) hasSolHis[i]=1;
+			for(i=I;i>=0&&!hasSolution[i];i--) hasSolution[i]=true;
 			runRetract(); C++;
 			if(!tsbtListAll.Checked&&C==10) {
 				tbOutput.Text+="\r\nToo many solutions. Forced stop. Use \"list all solutions\" option if needed.";
@@ -340,7 +318,7 @@ namespace Mushikui_Puzzle_Workshop {
 			for(k=0;k<probList.Length;k++) {
 				goalList[k]=new List<int>();
 				prob=probList[k].ToCharArray();
-				for(i=0;i<prob.Length&&i<500;i++) {
+				for(i=0;i<prob.Length&&i<lengthLimit;i++) {
 					if(prob[i]=='?') goalList[k].Add(1);
 					else if(prob[i]=='*') {
 						for(j=0;i<prob.Length&&prob[i]=='*';i++, j++) ;
@@ -363,7 +341,7 @@ namespace Mushikui_Puzzle_Workshop {
 					for(i=0;i<L.Count;i++) goal[i]=L[i];
 					toolStripStatusLabel.Text=goalToStar();
 					EN=new chessEngine(FEN);
-					I=0; C=0; J[0]=0; branchSize[0]=1; hasSolHis[0]=0;
+					I=0; C=0; J[0]=0; branchSize[0]=1; hasSolution[0]=false;
 					while(!STOP&&runMulSearch()) {
 						TOC+=EN.legalMovesLength;
 						if(TOC>TOL) { Application.DoEvents(); TOC=0;}
@@ -391,10 +369,9 @@ namespace Mushikui_Puzzle_Workshop {
 			return s;
 		}
 		private bool runMulSearch() {
-			int hash;
 			if(I==goalLength) {
 				tempSolution=EN.PGN;
-				for(int i=I;i>=0&&hasSolHis[i]==0;i--) hasSolHis[i]=1;
+				for(int i=I;i>=0&&!hasSolution[i];i--) hasSolution[i]=true;
 				runRetract(); C++;
 				if(C>1) return false;
 			}
@@ -403,27 +380,17 @@ namespace Mushikui_Puzzle_Workshop {
 				if(I==0) return false;
 				else {
 					if(I>2) {
-						hash=hashHis[I];
-						if(branchSize[I]>branchSizeLowerBound) {			// 後續分歧太小的話就不要管，減少無謂局面的記錄，從根本減少碰撞發生率
-							if(transState[hash]==0) {						// 不做碰撞處理，只有當欄位沒有被佔據的時候才繼續
-								Buffer.BlockCopy(EN.positionData, 0, transTable, hash*chessEngine.posDataSize, chessEngine.posDataSize);
-								transState[hash]=(byte)(hasSolHis[I]==0?2:3);
-							}
-						}
+						if(branchSize[I]>branchSizeLowerBound)			// 後續分歧太小的話就不要管，減少無謂局面的記錄，從根本減少碰撞發生率
+							transTable.Insert(EN.positionData, hasSolution[I]);
 					}
 					runRetract();
 				}
 			} else {
-				EN.play(J[I]); I++; J[I]=0; branchSize[I]=1; hasSolHis[I]=0;
+				EN.play(J[I]); I++; J[I]=0; branchSize[I]=1; hasSolution[I]=false;
 				if(I>2) {
-					hash=(int)EN.hash;
-					hashHis[I]=hash;
-					if(transState[hash]!=0) {
-						Buffer.BlockCopy(transTable, hash*chessEngine.posDataSize, posTemp, 0, chessEngine.posDataSize);
-						if(posTemp.SequenceEqual(EN.positionData)) {
-							if(transState[hash]==3) { C++; return false; }	// 找到調換解，可以結束了。
-							if(transState[hash]==2) runRetract();
-						}
+					if(transTable.LookUp(EN.positionData)) {
+						if(transTable.Value) { C++; return false; }	// 找到調換解，可以結束了。
+						if(!transTable.Value) runRetract();
 					}
 				}
 			}
@@ -451,6 +418,7 @@ namespace Mushikui_Puzzle_Workshop {
 				}
 			}
 			foreach(List<int> L in goalList) {
+				Application.DoEvents();
 				goalLength=L.Count;
 				if(goalLength>0) {
 					for(i=0;i<L.Count;i++) goal[i]=L[i];

@@ -31,8 +31,8 @@ namespace Mushikui_Puzzle_Workshop
 			public sq[,][]		move;
 			public sq[,][][]	ray;
 					
-			public pRule(int T, sq[] S) {
-				type=T; rule=S; move=new sq[8, 8][]; ray=new sq[8, 8][][];
+			public pRule(int Type, sq[] Square) {
+				type=Type; rule=Square; move=new sq[8, 8][]; ray=new sq[8, 8][][];
 			}
 		}
 		private struct cState {
@@ -281,8 +281,9 @@ namespace Mushikui_Puzzle_Workshop
 		/////////////////////////////////
 
 		public const string initFEN="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-		public const int maxDepth=512;
-		public const int maxVar=256;
+		
+		public const int maxDepth=256;	// 最大深度。實際上會被這個程式搜尋的問題長度往往遠小於這個界線
+		public const int maxVar=256;	// 最大棋步清單。暫時無法從理論上保證這個上界一定夠用，但等到不夠的時候再說吧
 
 		public int legalMovesSL(int i) {
 			if(i<0||i>legalMovesLengthHis[depth]) return 0;
@@ -868,7 +869,7 @@ namespace Mushikui_Puzzle_Workshop
 							if(r[0].y==sy&&i<r.Length-1) {											// 橫方向上需要再多做吃過路兵的一次閃兩子判別
 								if(position[r[i].x, r[i].y]==oP&&position[r[i+1].x, r[i+1].y]==pP&&
 									enPassantState.x==r[i+1].x&&enPassantState.y==r[i+1].y+(whoseMove==1?1:-1)) {
-									for(i+=2;i<8&&inBoard(r[i].x, r[i].y);i++) {
+									for(i+=2;i<r.Length;i++) {
 #if DEBUG
 										CT2++;
 #endif
@@ -877,7 +878,7 @@ namespace Mushikui_Puzzle_Workshop
 									}
 								} else if(position[r[i].x, r[i].y]==pP&&position[r[i+1].x, r[i+1].y]==oP&&
 									enPassantState.x==r[i].x&&enPassantState.y==r[i].y+(whoseMove==1?1:-1)) {
-									for(i+=2;i<8&&inBoard(r[i].x, r[i].y);i++) {
+									for(i+=2;i<r.Length;i++) {
 #if DEBUG
 										CT2++;
 #endif
@@ -954,7 +955,7 @@ namespace Mushikui_Puzzle_Workshop
 		private bool checkParallel(int dx, int dy, int px, int py) {
 			if((dx==0&&px==0)||(dy==0&&py==0)) return true;					// 縱橫向平行
 			else if(dx==0||px==0||dy==0||py==0) return false;				// 至少一個為縱橫向但不平行
-			else if((dy==dx&&py==px)||(dy==-dx&&py==-py)) return true;		// 斜向平行
+			else if((dy==dx&&py==px)||(dy==-dx&&py==-px)) return true;		// 斜向平行
 			else return false;												// 不平行
 		}
 		
@@ -1109,7 +1110,6 @@ namespace Mushikui_Puzzle_Workshop
 		// 調換表
 		/////////////////////////////////
 
-		public const int hashBits=23;		// 此數值決定要開多大的調換表，2^23 是很理想的大小
 		public const int posDataSize=35;	// 局面資料的大小
 
 		private byte[] _positionData=new byte[posDataSize];
@@ -1125,17 +1125,12 @@ namespace Mushikui_Puzzle_Workshop
 					// 嚴格來說記錄 13^64 種狀態只需要 30 byte，但那樣節省記憶體沒有意義，徒增運算量
 					
 					_positionData[32]=(byte)((castlingState.K?8:0)|(castlingState.Q?4:0)|(castlingState.k?2:0)|(castlingState.q?1:0));
-					_positionData[33]=(byte)((enPassantState.x==-1?0:(32|(enPassantState.x<<2)|(enPassantState.y==2?2:0)))|(depth>>8));
-					_positionData[34]=(byte)(depth&0xFF);
+					_positionData[33]=(byte)(enPassantState.x==-1?0:(16|(enPassantState.x<<1)|(enPassantState.y==2?1:0)));
+					_positionData[34]=(byte)(depth);
 					positionDataReady=true;
 				}
 				return _positionData;
 			}
 		}
-		public uint hash {
-			get { return MH2.Hash(positionData)>>(32-hashBits);}
-		}
-		private MurmurHash2Unsafe MH2=new MurmurHash2Unsafe();		// 使用的是我能找到最快的 MurmurHash2 函數
-	
 	}
 }
