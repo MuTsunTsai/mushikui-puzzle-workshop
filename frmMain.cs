@@ -30,8 +30,11 @@ namespace Mushikui_Puzzle_Workshop {
 			tsbtInitStar.Image=imageList.Images[10];
 
 			notifyIcon.Icon=Icon;
+			notifyIcon.Text=Text;
 
-			tstbFEN.Text=chessEngine.initFEN;
+			//EN=new chessEngine("8/8/8/1r1b4/BpP5/1K6/8/3k4 b - c3 0 1");
+
+			tstbFEN.Text=chessEngine.initFEN;			
 		}
 
 		/////////////////////////////////
@@ -138,7 +141,7 @@ namespace Mushikui_Puzzle_Workshop {
 		private bool STOP=true;
 		private chessEngine EN;
 		private Stopwatch SW=new Stopwatch();
-		private const int TOL=500000;
+		private const int TOL=1000000;
 
 		private int[] goal=new int[chessEngine.maxDepth];
 		private int goalLength;
@@ -169,14 +172,13 @@ namespace Mushikui_Puzzle_Workshop {
 		/////////////////////////////////
 
 		private const uint	transTableSize=1<<chessEngine.hashBits;
-		private const int	posDataSize=36;
 		private const int	branchSizeLowerBound=10;	// 設置下限，防止後續分歧太小的局面被加入調換表
 
 		private ComputerInfo CInfo=new ComputerInfo();
 
 		private byte[,]	transTable;
 		private byte[]	transState;	// 0 未初始化 1 未知 2 無解 3 有解
-		private byte[]	posTemp=new byte[posDataSize];
+		private byte[]	posTemp=new byte[chessEngine.posDataSize];
 
 		private int[]	hashHis;
 		private int[]	branchSize;
@@ -185,7 +187,7 @@ namespace Mushikui_Puzzle_Workshop {
 		private int posCount, transCount, collCount;
 		
 		private void initTransTable() {
-			transTable=new byte[transTableSize, posDataSize];
+			transTable=new byte[transTableSize, chessEngine.posDataSize];
 			transTable.Initialize();
 			transState=new byte[transTableSize];
 			transState.Initialize();
@@ -242,6 +244,10 @@ namespace Mushikui_Puzzle_Workshop {
 				goalLength=l;
 				if(goalLength>0) {
 					EN=new chessEngine(FEN);
+					if(EN.positionError) {
+						MessageBox.Show("Inputed FEN is not a legal position: "+EN.positionErrorText);
+						stopSearch();
+					}
 					I=0; C=0; J[0]=0; branchSize[0]=1; hasSolHis[0]=0;
 					while(!STOP&&runSearch()) {
 						TOC+=EN.legalMovesLength;
@@ -256,9 +262,6 @@ namespace Mushikui_Puzzle_Workshop {
 				delTransTable();
 			}
 			stopSearch();
-#if DEBUG
-			tbOutput.Text+="\r\nCT0: "+EN.CT0+"\r\nCT1: "+EN.CT1+"\r\nCT2: "+EN.CT2+"\r\nTOT: "+(EN.CT0+EN.CT1+EN.CT2);
-#endif
 		}
 		private bool runSearch() {
 			int hash;
@@ -274,7 +277,7 @@ namespace Mushikui_Puzzle_Workshop {
 						hash=hashHis[I];
 						if(branchSize[I]>branchSizeLowerBound) {			// 後續分歧太小的話就不要管，減少無謂局面的記錄，從根本減少碰撞發生率
 							if(transState[hash]==0) {						// 不做碰撞處理，只有當欄位沒有被佔據的時候才繼續
-								Buffer.BlockCopy(EN.positionData, 0, transTable, hash*posDataSize, posDataSize);
+								Buffer.BlockCopy(EN.positionData, 0, transTable, hash*chessEngine.posDataSize, chessEngine.posDataSize);
 								transState[hash]=(byte)(hasSolHis[I]==0?2:3);
 								posCount++;
 							} else collCount++;
@@ -288,7 +291,7 @@ namespace Mushikui_Puzzle_Workshop {
 					hash=(int)EN.hash;
 					hashHis[I]=hash;
 					if(transState[hash]!=0) {
-						Buffer.BlockCopy(transTable, hash*posDataSize, posTemp, 0, posDataSize);
+						Buffer.BlockCopy(transTable, hash*chessEngine.posDataSize, posTemp, 0, chessEngine.posDataSize);
 						if(posTemp.SequenceEqual(EN.positionData)) {
 							transCount++;
 							if(transState[hash]==3&&!foundSolution(true)) return false;
@@ -341,6 +344,11 @@ namespace Mushikui_Puzzle_Workshop {
 				}
 			}
 			initTransTable();
+			EN=new chessEngine(FEN);
+			if(EN.positionError) {
+				MessageBox.Show("Inputed FEN is not a legal position: "+EN.positionErrorText);
+				stopSearch();
+			}
 			foreach(List<int> L in goalList) {
 				if(STOP) break;
 				Application.DoEvents();
@@ -393,7 +401,7 @@ namespace Mushikui_Puzzle_Workshop {
 						hash=hashHis[I];
 						if(branchSize[I]>branchSizeLowerBound) {			// 後續分歧太小的話就不要管，減少無謂局面的記錄，從根本減少碰撞發生率
 							if(transState[hash]==0) {						// 不做碰撞處理，只有當欄位沒有被佔據的時候才繼續
-								Buffer.BlockCopy(EN.positionData, 0, transTable, hash*posDataSize, posDataSize);
+								Buffer.BlockCopy(EN.positionData, 0, transTable, hash*chessEngine.posDataSize, chessEngine.posDataSize);
 								transState[hash]=(byte)(hasSolHis[I]==0?2:3);
 							}
 						}
@@ -406,7 +414,7 @@ namespace Mushikui_Puzzle_Workshop {
 					hash=(int)EN.hash;
 					hashHis[I]=hash;
 					if(transState[hash]!=0) {
-						Buffer.BlockCopy(transTable, hash*posDataSize, posTemp, 0, posDataSize);
+						Buffer.BlockCopy(transTable, hash*chessEngine.posDataSize, posTemp, 0, chessEngine.posDataSize);
 						if(posTemp.SequenceEqual(EN.positionData)) {
 							if(transState[hash]==3) { C++; return false; }	// 找到調換解，可以結束了。
 							if(transState[hash]==2) runRetract();

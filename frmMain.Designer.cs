@@ -273,7 +273,6 @@
 			// 
 			// notifyIcon
 			// 
-			this.notifyIcon.Text="Mushikui Puzzle Workshop (Transposition Table Edition)";
 			this.notifyIcon.MouseDoubleClick+=new System.Windows.Forms.MouseEventHandler(this.notifyIcon_MouseDoubleClick);
 			// 
 			// frmMain
@@ -290,7 +289,7 @@
 			this.MinimumSize=new System.Drawing.Size(645, 450);
 			this.Name="frmMain";
 			this.StartPosition=System.Windows.Forms.FormStartPosition.CenterScreen;
-			this.Text="Mushikui Puzzle Workshop (Transposition Table Edition)";
+			this.Text="Mushikui Puzzle Workshop (ver 0.3)";
 			this.Load+=new System.EventHandler(this.frmMain_Load);
 			this.FormClosing+=new System.Windows.Forms.FormClosingEventHandler(this.frmMain_FormClosing);
 			this.Resize+=new System.EventHandler(this.frmMain_Resize);
