@@ -9,16 +9,6 @@ namespace Mushikui_Puzzle_Workshop {
 	partial class chessEngine2 {
 
 		/////////////////////////////////
-		// 常數
-		/////////////////////////////////
-
-		private const ulong len2=(ulong)2<<48;
-		private const ulong len3=(ulong)3<<48;
-		private const ulong len4=(ulong)4<<48;
-		private const ulong len5=(ulong)5<<48;
-		private const ulong len6=(ulong)6<<48;
-
-		/////////////////////////////////
 		// 合法棋步計算
 		/////////////////////////////////
 
@@ -177,14 +167,14 @@ namespace Mushikui_Puzzle_Workshop {
 					// 入堡棋步，這邊只檢查入堡權、當下的將軍以及中間的格子是否空的，攻擊檢查待會再做
 					if(k==wK&&checkPieceCount==0) {
 						if((castlingState[depth]&cwK)!=0&&position[5]==b0&&position[6]==b0)
-							TML[l++]=((ulong)4)|((ulong)6<<8)|((ulong)6<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)OOMove<<36)|len3;
+							TML[l++]=((ulong)4)|((ulong)6<<taS)|((ulong)6<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)OOMove<<miS)|len3;
 						if((castlingState[depth]&cwQ)!=0&&position[1]==b0&&position[2]==b0&&position[3]==b0)
-							TML[l++]=((ulong)4)|((ulong)2<<8)|((ulong)2<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)OOOMove<<36)|len5;
+							TML[l++]=((ulong)4)|((ulong)2<<taS)|((ulong)2<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)OOOMove<<miS)|len5;
 					} else if(k==bK&&checkPieceCount==0) {
 						if((castlingState[depth]&cbK)!=0&&position[61]==b0&&position[62]==b0)
-							TML[l++]=((ulong)60)|((ulong)62<<8)|((ulong)62<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)OOMove<<36)|len3;
+							TML[l++]=((ulong)60)|((ulong)62<<taS)|((ulong)62<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)OOMove<<miS)|len3;
 						if((castlingState[depth]&cbQ)!=0&&position[57]==b0&&position[58]==b0&&position[59]==b0)
-							TML[l++]=((ulong)60)|((ulong)58<<8)|((ulong)58<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)OOOMove<<36)|len5;
+							TML[l++]=((ulong)60)|((ulong)58<<taS)|((ulong)58<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)OOOMove<<miS)|len5;
 					}
 
 					// 小兵棋步
@@ -192,69 +182,69 @@ namespace Mushikui_Puzzle_Workshop {
 					if(k==wP) {
 						if(position[r=(byte)(p+8)]==b0) {
 							if((p>>3)==6) {
-								TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wN<<28)|len4;
-								TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wR<<28)|len4;
-								TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wB<<28)|len4;
-								TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wQ<<28)|len4;
+								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wN<<ntS)|len4;
+								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wR<<ntS)|len4;
+								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wB<<ntS)|len4;
+								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wQ<<ntS)|len4;
 							} else {
-								TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len2;
-								if((p>>3)==1&&position[r=(byte)(p+16)]==b0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len2;
+								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len2;
+								if((p>>3)==1&&position[r=(byte)(p+16)]==b0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len2;
 							}
 						}
 						if((r=pieceRuleWP[p, 0])!=NS) {
 							if(side(d=position[r])==BC) {
 								if((p>>3)==6) {
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wN<<28)|((ulong)d<<32)|len6;
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wR<<28)|((ulong)d<<32)|len6;
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wB<<28)|((ulong)d<<32)|len6;
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wQ<<28)|((ulong)d<<32)|len6;
-								} else TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wN<<ntS)|((ulong)d<<cpS)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wR<<ntS)|((ulong)d<<cpS)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wB<<ntS)|((ulong)d<<cpS)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wQ<<ntS)|((ulong)d<<cpS)|len6;
+								} else TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
 							} else if(r==enPassantState[depth])
-								TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)ep<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)bP<<32)|((ulong)epMove<<36)|len6;
+								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)ep<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)bP<<cpS)|((ulong)epMove<<miS)|len6;
 							if((r=pieceRuleWP[p, 1])!=NS) {
 								if(side(d=position[r])==BC) {
 									if((p>>3)==6) {
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wN<<28)|((ulong)d<<32)|len6;
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wR<<28)|((ulong)d<<32)|len6;
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wB<<28)|((ulong)d<<32)|len6;
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wQ<<28)|((ulong)d<<32)|len6;
-									} else TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wN<<ntS)|((ulong)d<<cpS)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wR<<ntS)|((ulong)d<<cpS)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wB<<ntS)|((ulong)d<<cpS)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wQ<<ntS)|((ulong)d<<cpS)|len6;
+									} else TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
 								} else if(r==enPassantState[depth])
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)ep<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)bP<<32)|((ulong)epMove<<36)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)ep<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)bP<<cpS)|((ulong)epMove<<miS)|len6;
 							}
 						}
 					} else if(k==bP) {
 						if(position[r=(byte)(p-8)]==b0) {
 							if((p>>3)==1) {
-								TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bN<<28)|len4;
-								TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bR<<28)|len4;
-								TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bB<<28)|len4;
-								TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bQ<<28)|len4;
+								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bN<<ntS)|len4;
+								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bR<<ntS)|len4;
+								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bB<<ntS)|len4;
+								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bQ<<ntS)|len4;
 							} else {
-								TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len2;
-								if((p>>3)==6&&position[r=(byte)(p-16)]==b0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len2;
+								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len2;
+								if((p>>3)==6&&position[r=(byte)(p-16)]==b0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len2;
 							}
 						}
 						if((r=pieceRuleBP[p, 0])!=NS) {
 							if(side(d=position[r])==WT) {
 								if((p>>3)==1) {
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bN<<28)|((ulong)d<<32)|len6;
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bR<<28)|((ulong)d<<32)|len6;
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bB<<28)|((ulong)d<<32)|len6;
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bQ<<28)|((ulong)d<<32)|len6;
-								} else TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bN<<ntS)|((ulong)d<<cpS)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bR<<ntS)|((ulong)d<<cpS)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bB<<ntS)|((ulong)d<<cpS)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bQ<<ntS)|((ulong)d<<cpS)|len6;
+								} else TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
 							} else if(r==enPassantState[depth])
-								TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)ep<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)wP<<32)|((ulong)epMove<<36)|len6;
+								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)ep<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)wP<<cpS)|((ulong)epMove<<miS)|len6;
 							if((r=pieceRuleBP[p, 1])!=NS) {
 								if(side(d=position[r])==WT) {
 									if((p>>3)==1) {
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bN<<28)|((ulong)d<<32)|len6;
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bR<<28)|((ulong)d<<32)|len6;
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bB<<28)|((ulong)d<<32)|len6;
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bQ<<28)|((ulong)d<<32)|len6;
-									} else TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bN<<ntS)|((ulong)d<<cpS)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bR<<ntS)|((ulong)d<<cpS)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bB<<ntS)|((ulong)d<<cpS)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bQ<<ntS)|((ulong)d<<cpS)|len6;
+									} else TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
 								} else if(r==enPassantState[depth])
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)ep<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)wP<<32)|((ulong)epMove<<36)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)ep<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)wP<<cpS)|((ulong)epMove<<miS)|len6;
 							}
 						}
 					}
@@ -264,22 +254,22 @@ namespace Mushikui_Puzzle_Workshop {
 					else {
 						if(k==oN) {
 							for(i=0;(r=pieceRuleN[p, i])!=NS;i++)
-								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len3;
-								else if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
+								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
+								else if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
 						} else if(k==oK) {
 							for(i=0;(r=pieceRuleK[p, i])!=NS;i++)
-								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len3;
-								else if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
+								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
+								else if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
 						} else {
 							if((k&b1)==b1)
 								for(i=0;HVRule[p, i, 0]!=NS;i++) for(j=0;(r=HVRule[p, i, j])!=NS;j++) {
-										if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len3;
-										else { if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4; break; }
+										if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
+										else { if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4; break; }
 									}
 							if((k&b2)==b2)
 								for(i=0;DIRule[p, i, 0]!=NS;i++) for(j=0;(r=DIRule[p, i, j])!=NS;j++) {
-										if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len3;
-										else { if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4; break; }
+										if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
+										else { if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4; break; }
 									}
 						}
 					}
@@ -306,29 +296,29 @@ namespace Mushikui_Puzzle_Workshop {
 				tag=checkMove(TML[i]);
 				if(tag>0) {
 					so=(byte)(TML[i]&0x3F);
-					ta=(byte)((TML[i]>>8)&0x3F);
-					ot=(byte)((TML[i]>>24)&0xF);	
+					ta=(byte)((TML[i]>>taS)&0x3F);
+					ot=(byte)((TML[i]>>otS)&0xF);	
 					if(ot!=wP&&ot!=bP&&ot!=wK&&ot!=bK)
 						DisambList[ta, ot, DisambListLength[ta, ot]++]=so;	// 登錄消歧義名單
-					moveList[depth, j++]=TML[i]|((ulong)tag<<40);
+					moveList[depth, j++]=TML[i]|((ulong)tag<<tgS);
 				}
 			}
 			moveListLength[depth]=(byte)j;
 			
 			// 全部的合法棋步都出來之後，進行消歧義標籤計算
 			for(i=0;i<j;i++) {
-				ta=(byte)((moveList[depth, i]>>8)&0x3F);
-				ot=(byte)((moveList[depth, i]>>24)&0xF);
+				ta=(byte)((moveList[depth, i]>>taS)&0x3F);
+				ot=(byte)((moveList[depth, i]>>otS)&0xF);
 				if(DisambListLength[ta, ot]<=1) continue;
 				so=(byte)(moveList[depth, i]&0x3F); cx=0; cy=0;
 				for(l=0;l<DisambListLength[ta, ot];l++) {
 					if((DisambList[ta, ot, l]&7)==(so&7)) cx++;
 					if((DisambList[ta, ot, l]>>3)==(so>>3)) cy++;
 				}
-				moveList[depth, i]|=((ulong)(cx==1?b1:(cy==1?b2:b3))<<44);
+				moveList[depth, i]|=((ulong)(cx==1?b1:(cy==1?b2:b3))<<dbS);
 			}
 
-			if(j==0&&depth>0&&(moveHis[depth-1]>>40&0xF)==2) moveHis[depth-1]|=((ulong)1<<40);		// 如果沒有合法棋步可動，且上一步是將軍，換掉將軍符號為將死
+			if(j==0&&depth>0&&(moveHis[depth-1]>>tgS&0xF)==2) moveHis[depth-1]|=((ulong)1<<tgS);		// 如果沒有合法棋步可動，且上一步是將軍，換掉將軍符號為將死
 		}
 
 		/////////////////////////////////
@@ -337,12 +327,12 @@ namespace Mushikui_Puzzle_Workshop {
 
 		private byte checkMove(ulong m) {
 			byte so=(byte)(m&0x3F);
-			byte ta=(byte)((m>>8)&0x3F);
-			byte de=(byte)((m>>16)&0x3F);
-			byte ot=(byte)((m>>24)&0xF);
-			byte nt=(byte)((m>>28)&0xF);
-			byte cp=(byte)((m>>32)&0xF);
-			byte mi=(byte)((m>>36)&0xF);
+			byte ta=(byte)((m>>taS)&0x3F);
+			byte de=(byte)((m>>deS)&0x3F);
+			byte ot=(byte)((m>>otS)&0xF);
+			byte nt=(byte)((m>>ntS)&0xF);
+			byte cp=(byte)((m>>cpS)&0xF);
+			byte mi=(byte)((m>>miS)&0xF);
 
 			// 先排除不合法的情況
 		

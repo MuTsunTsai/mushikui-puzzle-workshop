@@ -141,65 +141,93 @@ namespace Mushikui_Puzzle_Workshop {
 					// 入堡棋步，這邊只檢查入堡權、當下的將軍以及中間的格子是否空的，攻擊檢查待會再做
 					if(k==wK&&checkPieceCount==0) {
 						if((castlingState[depth]&cwQ)!=0&&position[1]==b0&&position[2]==b0&&position[3]==b0)
-							TML[l++]=((ulong)4)|((ulong)2<<8)|((ulong)2<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)OOOMove<<36)|len5;
+							TML[l++]=((ulong)4)|((ulong)2<<taS)|((ulong)2<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)OOOMove<<miS)|len5;
 					} else if(k==bK&&checkPieceCount==0) {
 						if((castlingState[depth]&cbQ)!=0&&position[57]==b0&&position[58]==b0&&position[59]==b0)
-							TML[l++]=((ulong)60)|((ulong)58<<8)|((ulong)58<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)OOOMove<<36)|len5;
+							TML[l++]=((ulong)60)|((ulong)58<<taS)|((ulong)58<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)OOOMove<<miS)|len5;
 					}
 
 					// 小兵棋步，只搜尋直走升變跟單純吃子兩種
 
 					if(k==wP) {
 						if(position[r=(byte)(p+8)]==b0&&(p>>3)==6) {
-							TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wN<<28)|len4;
-							TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wR<<28)|len4;
-							TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wB<<28)|len4;
-							TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wQ<<28)|len4;
+							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wN<<ntS)|len4;
+							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wR<<ntS)|len4;
+							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wB<<ntS)|len4;
+							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wQ<<ntS)|len4;
 						}
 						if((r=pieceRuleWP[p, 0])!=NS) {
 							if(side(d=position[r])==BC) {
-								if((p>>3)!=6) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
+								if((p>>3)!=6) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
 							}
 							if((r=pieceRuleWP[p, 1])!=NS&&side(d=position[r])==BC&&(p>>3)!=6)
-								TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
+								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
 						}
 					} else if(k==bP) {
 						if(position[r=(byte)(p-8)]==b0&&(p>>3)==1) {
-							TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bN<<28)|len4;
-							TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bR<<28)|len4;
-							TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bB<<28)|len4;
-							TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bQ<<28)|len4;
+							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bN<<ntS)|len4;
+							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bR<<ntS)|len4;
+							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bB<<ntS)|len4;
+							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bQ<<ntS)|len4;
 						}
 						if((r=pieceRuleBP[p, 0])!=NS) {
 							if(side(d=position[r])==WT) {
-								if((p>>3)!=1) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
+								if((p>>3)!=1) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
 							}
 							if((r=pieceRuleBP[p, 1])!=NS&&side(d=position[r])==WT&&(p>>3)!=1)
-								TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
+								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
 						}
 					}
 
 
-					// 普通棋步（含國王的）
+					// 普通棋步，如果沒有消歧義的話一定得吃子
+					else if(pieceCount[k]==1) {
+						if(k==oN) {
+							for(i=0;(r=pieceRuleN[p, i])!=NS;i++)
+								if((d=position[r])!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+						} else if(k==oK) {
+							for(i=0;(r=pieceRuleK[p, i])!=NS;i++)
+								if((d=position[r])!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+						} else {
+							if((k&b1)==b1) {
+								pData=slideHitR[p, data=(int)(occuH>>occuShiftH[p]&0x3F)]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+								pData=slideHitL[p, data]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+								pData=slideHitU[p, data=(int)(occuV>>occuShiftV[p]&0x3F)]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+								pData=slideHitD[p, data]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+							}
+							if((k&b2)==b2) {
+								pData=slideHitRU[p, data=(int)(occuFS>>occuShiftFS[p]&0x3F)]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+								pData=slideHitLD[p, data]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+								pData=slideHitRD[p, data=(int)(occuBS>>occuShiftBS[p]&0x3F)]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+								pData=slideHitLU[p, data]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+							}
+						}
+					}
+					
+					// 有消歧義可能的話就做一般的搜尋
 					else {
 						if(k==oN) {
 							for(i=0;(r=pieceRuleN[p, i])!=NS;i++)
-								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len3;
-								else if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
-						} else if(k==oK) {
-							for(i=0;(r=pieceRuleK[p, i])!=NS;i++)
-								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len3;
-								else if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
+								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
+								else if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
 						} else {
 							if((k&b1)==b1)
 								for(i=0;HVRule[p, i, 0]!=NS;i++) for(j=0;(r=HVRule[p, i, j])!=NS;j++) {
-									if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len3;
-									else { if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4; break; }
+									if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
+									else { if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4; break; }
 								}
 							if((k&b2)==b2)
 								for(i=0;DIRule[p, i, 0]!=NS;i++) for(j=0;(r=DIRule[p, i, j])!=NS;j++) {
-									if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len3;
-									else { if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4; break; }
+									if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
+									else { if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4; break; }
 								}
 						}
 					}
@@ -226,26 +254,29 @@ namespace Mushikui_Puzzle_Workshop {
 				tag=checkMoveNoEP(TML[i]);
 				if(tag>0) {
 					so=(byte)(TML[i]&0x3F);
-					ta=(byte)((TML[i]>>8)&0x3F);
-					ot=(byte)((TML[i]>>24)&0xF);
+					ta=(byte)((TML[i]>>taS)&0x3F);
+					ot=(byte)((TML[i]>>otS)&0xF);
 					if(ot!=wP&&ot!=bP&&ot!=wK&&ot!=bK)
 						DisambList[ta, ot, DisambListLength[ta, ot]++]=so;	// 登錄消歧義名單
-					moveList[depth, j++]=TML[i]|((ulong)tag<<40);
+					moveList[depth, j++]=TML[i]|((ulong)tag<<tgS);
 				}
 			}
 			moveListLength[depth]=(byte)j;
-
+#if DEBUG
+			pseudoMoveCount[5]+=l;
+			totalMoveCount[5]+=j;
+#endif
 			// 全部的合法棋步都出來之後，進行消歧義標籤計算
 			for(i=0;i<j;i++) {
-				ta=(byte)((moveList[depth, i]>>8)&0x3F);
-				ot=(byte)((moveList[depth, i]>>24)&0xF);
+				ta=(byte)((moveList[depth, i]>>taS)&0x3F);
+				ot=(byte)((moveList[depth, i]>>otS)&0xF);
 				if(DisambListLength[ta, ot]<=1) continue;
 				so=(byte)(moveList[depth, i]&0x3F); cx=0; cy=0;
 				for(l=0;l<DisambListLength[ta, ot];l++) {
 					if((DisambList[ta, ot, l]&7)==(so&7)) cx++;
 					if((DisambList[ta, ot, l]>>3)==(so>>3)) cy++;
 				}
-				moveList[depth, i]|=((ulong)(cx==1?b1:(cy==1?b2:b3))<<44);
+				moveList[depth, i]|=((ulong)(cx==1?b1:(cy==1?b2:b3))<<dbS);
 			}
 		}
 
@@ -390,10 +421,10 @@ namespace Mushikui_Puzzle_Workshop {
 					// 入堡棋步，這邊只檢查入堡權、當下的將軍以及中間的格子是否空的，攻擊檢查待會再做
 					if(k==wK&&checkPieceCount==0) {
 						if((castlingState[depth]&cwQ)!=0&&position[1]==b0&&position[2]==b0&&position[3]==b0)
-							TML[l++]=((ulong)4)|((ulong)2<<8)|((ulong)2<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)OOOMove<<36)|len5;
+							TML[l++]=((ulong)4)|((ulong)2<<taS)|((ulong)2<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)OOOMove<<miS)|len5;
 					} else if(k==bK&&checkPieceCount==0) {
 						if((castlingState[depth]&cbQ)!=0&&position[57]==b0&&position[58]==b0&&position[59]==b0)
-							TML[l++]=((ulong)60)|((ulong)58<<8)|((ulong)58<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)OOOMove<<36)|len5;
+							TML[l++]=((ulong)60)|((ulong)58<<taS)|((ulong)58<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)OOOMove<<miS)|len5;
 					}
 
 					// 小兵棋步，只搜尋吃子升變跟吃過路兵
@@ -402,68 +433,99 @@ namespace Mushikui_Puzzle_Workshop {
 						if((r=pieceRuleWP[p, 0])!=NS) {
 							if(side(d=position[r])==BC) {
 								if((p>>3)==6) {
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wN<<28)|((ulong)d<<32)|len6;
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wR<<28)|((ulong)d<<32)|len6;
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wB<<28)|((ulong)d<<32)|len6;
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wQ<<28)|((ulong)d<<32)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wN<<ntS)|((ulong)d<<cpS)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wR<<ntS)|((ulong)d<<cpS)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wB<<ntS)|((ulong)d<<cpS)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wQ<<ntS)|((ulong)d<<cpS)|len6;
 								}
 							} else if(r==enPassantState[depth])
-								TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)ep<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)bP<<32)|((ulong)epMove<<36)|len6;
+								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)ep<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)bP<<cpS)|((ulong)epMove<<miS)|len6;
 							if((r=pieceRuleWP[p, 1])!=NS) {
 								if(side(d=position[r])==BC) {
 									if((p>>3)==6) {
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wN<<28)|((ulong)d<<32)|len6;
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wR<<28)|((ulong)d<<32)|len6;
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wB<<28)|((ulong)d<<32)|len6;
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wQ<<28)|((ulong)d<<32)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wN<<ntS)|((ulong)d<<cpS)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wR<<ntS)|((ulong)d<<cpS)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wB<<ntS)|((ulong)d<<cpS)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wQ<<ntS)|((ulong)d<<cpS)|len6;
 									}
 								} else if(r==enPassantState[depth])
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)ep<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)bP<<32)|((ulong)epMove<<36)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)ep<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)bP<<cpS)|((ulong)epMove<<miS)|len6;
 							}
 						}
 					} else if(k==bP) {
 						if((r=pieceRuleBP[p, 0])!=NS) {
 							if(side(d=position[r])==WT) {
 								if((p>>3)==1) {
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bN<<28)|((ulong)d<<32)|len6;
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bR<<28)|((ulong)d<<32)|len6;
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bB<<28)|((ulong)d<<32)|len6;
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bQ<<28)|((ulong)d<<32)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bN<<ntS)|((ulong)d<<cpS)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bR<<ntS)|((ulong)d<<cpS)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bB<<ntS)|((ulong)d<<cpS)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bQ<<ntS)|((ulong)d<<cpS)|len6;
 								}
 							} else if(r==enPassantState[depth])
-								TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)ep<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)wP<<32)|((ulong)epMove<<36)|len6;
+								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)ep<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)wP<<cpS)|((ulong)epMove<<miS)|len6;
 							if((r=pieceRuleBP[p, 1])!=NS) {
 								if(side(d=position[r])==WT) {
 									if((p>>3)==1) {
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bN<<28)|((ulong)d<<32)|len6;
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bR<<28)|((ulong)d<<32)|len6;
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bB<<28)|((ulong)d<<32)|len6;
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bQ<<28)|((ulong)d<<32)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bN<<ntS)|((ulong)d<<cpS)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bR<<ntS)|((ulong)d<<cpS)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bB<<ntS)|((ulong)d<<cpS)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bQ<<ntS)|((ulong)d<<cpS)|len6;
 									}
 								} else if(r==enPassantState[depth])
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)ep<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)wP<<32)|((ulong)epMove<<36)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)ep<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)wP<<cpS)|((ulong)epMove<<miS)|len6;
 							}
 						}
 					}
 
 
-					// 普通棋步（不含國王）
-					else if(k==oN) {
-						for(i=0;(r=pieceRuleN[p, i])!=NS;i++)
-							if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len3;
-							else if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
-					} else if(k!=oK) {
-						if((k&b1)==b1)
-							for(i=0;HVRule[p, i, 0]!=NS;i++) for(j=0;(r=HVRule[p, i, j])!=NS;j++) {
-								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len3;
-								else { if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4; break; }
+					// 普通棋步的話一定要消歧義
+					else if(pieceCount[k]>2) {
+						if(k==oN) {
+							for(i=0;(r=pieceRuleN[p, i])!=NS;i++)
+								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
+								else if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+						} else {
+							if((k&b1)==b1)
+								for(i=0;HVRule[p, i, 0]!=NS;i++) for(j=0;(r=HVRule[p, i, j])!=NS;j++) {
+									if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
+									else { if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4; break; }
+								}
+							if((k&b2)==b2)
+								for(i=0;DIRule[p, i, 0]!=NS;i++) for(j=0;(r=DIRule[p, i, j])!=NS;j++) {
+									if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
+									else { if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4; break; }
+								}
+						}
+					}
+
+					// 如果只有一碼消歧義的話必須吃子
+					else if(pieceCount[k]==2) {
+						if(k==oN) {
+							for(i=0;(r=pieceRuleN[p, i])!=NS;i++)
+								if((d=position[r])!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+						} else {
+							if((k&b1)==b1) {
+								pData=slideHitR[p, data=(int)(occuH>>occuShiftH[p]&0x3F)]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+								pData=slideHitL[p, data]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+								pData=slideHitU[p, data=(int)(occuV>>occuShiftV[p]&0x3F)]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+								pData=slideHitD[p, data]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
 							}
-						if((k&b2)==b2)
-							for(i=0;DIRule[p, i, 0]!=NS;i++) for(j=0;(r=DIRule[p, i, j])!=NS;j++) {
-								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len3;
-								else { if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4; break; }
+							if((k&b2)==b2) {
+								pData=slideHitRU[p, data=(int)(occuFS>>occuShiftFS[p]&0x3F)]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+								pData=slideHitLD[p, data]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+								pData=slideHitRD[p, data=(int)(occuBS>>occuShiftBS[p]&0x3F)]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+								pData=slideHitLU[p, data]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
 							}
-					}									
+						}
+					}
 				}
 					// 如果是敵方的棋子，生成 attackByOpp 資料
 				else {
@@ -486,26 +548,29 @@ namespace Mushikui_Puzzle_Workshop {
 				tag=checkMove(TML[i]);
 				if(tag>0) {
 					so=(byte)(TML[i]&0x3F);
-					ta=(byte)((TML[i]>>8)&0x3F);
-					ot=(byte)((TML[i]>>24)&0xF);
+					ta=(byte)((TML[i]>>taS)&0x3F);
+					ot=(byte)((TML[i]>>otS)&0xF);
 					if(ot!=wP&&ot!=bP&&ot!=wK&&ot!=bK)
 						DisambList[ta, ot, DisambListLength[ta, ot]++]=so;	// 登錄消歧義名單
-					moveList[depth, j++]=TML[i]|((ulong)tag<<40);
+					moveList[depth, j++]=TML[i]|((ulong)tag<<tgS);
 				}
 			}
 			moveListLength[depth]=(byte)j;
-
+#if DEBUG
+			pseudoMoveCount[6]+=l;
+			totalMoveCount[6]+=j;
+#endif
 			// 全部的合法棋步都出來之後，進行消歧義標籤計算
 			for(i=0;i<j;i++) {
-				ta=(byte)((moveList[depth, i]>>8)&0x3F);
-				ot=(byte)((moveList[depth, i]>>24)&0xF);
+				ta=(byte)((moveList[depth, i]>>taS)&0x3F);
+				ot=(byte)((moveList[depth, i]>>otS)&0xF);
 				if(DisambListLength[ta, ot]<=1) continue;
 				so=(byte)(moveList[depth, i]&0x3F); cx=0; cy=0;
 				for(l=0;l<DisambListLength[ta, ot];l++) {
 					if((DisambList[ta, ot, l]&7)==(so&7)) cx++;
 					if((DisambList[ta, ot, l]>>3)==(so>>3)) cy++;
 				}
-				moveList[depth, i]|=((ulong)(cx==1?b1:(cy==1?b2:b3))<<44);
+				moveList[depth, i]|=((ulong)(cx==1?b1:(cy==1?b2:b3))<<dbS);
 			}
 		}
 
@@ -651,75 +716,76 @@ namespace Mushikui_Puzzle_Workshop {
 						if((r=pieceRuleWP[p, 0])!=NS) {
 							if(side(d=position[r])==BC) {
 								if((p>>3)==6) {
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wN<<28)|((ulong)d<<32)|len6;
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wR<<28)|((ulong)d<<32)|len6;
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wB<<28)|((ulong)d<<32)|len6;
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wQ<<28)|((ulong)d<<32)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wN<<ntS)|((ulong)d<<cpS)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wR<<ntS)|((ulong)d<<cpS)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wB<<ntS)|((ulong)d<<cpS)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wQ<<ntS)|((ulong)d<<cpS)|len6;
 								}
 							} else if(r==enPassantState[depth])
-								TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)ep<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)bP<<32)|((ulong)epMove<<36)|len6;
+								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)ep<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)bP<<cpS)|((ulong)epMove<<miS)|len6;
 							if((r=pieceRuleWP[p, 1])!=NS) {
 								if(side(d=position[r])==BC) {
 									if((p>>3)==6) {
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wN<<28)|((ulong)d<<32)|len6;
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wR<<28)|((ulong)d<<32)|len6;
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wB<<28)|((ulong)d<<32)|len6;
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wQ<<28)|((ulong)d<<32)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wN<<ntS)|((ulong)d<<cpS)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wR<<ntS)|((ulong)d<<cpS)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wB<<ntS)|((ulong)d<<cpS)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wQ<<ntS)|((ulong)d<<cpS)|len6;
 									}
 								} else if(r==enPassantState[depth])
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)ep<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)bP<<32)|((ulong)epMove<<36)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)ep<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)bP<<cpS)|((ulong)epMove<<miS)|len6;
 							}
 						}
 					} else if(k==bP) {
 						if((r=pieceRuleBP[p, 0])!=NS) {
 							if(side(d=position[r])==WT) {
 								if((p>>3)==1) {
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bN<<28)|((ulong)d<<32)|len6;
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bR<<28)|((ulong)d<<32)|len6;
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bB<<28)|((ulong)d<<32)|len6;
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bQ<<28)|((ulong)d<<32)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bN<<ntS)|((ulong)d<<cpS)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bR<<ntS)|((ulong)d<<cpS)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bB<<ntS)|((ulong)d<<cpS)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bQ<<ntS)|((ulong)d<<cpS)|len6;
 								}
 							} else if(r==enPassantState[depth])
-								TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)ep<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)wP<<32)|((ulong)epMove<<36)|len6;
+								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)ep<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)wP<<cpS)|((ulong)epMove<<miS)|len6;
 							if((r=pieceRuleBP[p, 1])!=NS) {
 								if(side(d=position[r])==WT) {
 									if((p>>3)==1) {
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bN<<28)|((ulong)d<<32)|len6;
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bR<<28)|((ulong)d<<32)|len6;
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bB<<28)|((ulong)d<<32)|len6;
-										TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bQ<<28)|((ulong)d<<32)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bN<<ntS)|((ulong)d<<cpS)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bR<<ntS)|((ulong)d<<cpS)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bB<<ntS)|((ulong)d<<cpS)|len6;
+										TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bQ<<ntS)|((ulong)d<<cpS)|len6;
 									}
 								} else if(r==enPassantState[depth])
-									TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)ep<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)wP<<32)|((ulong)epMove<<36)|len6;
+									TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)ep<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)wP<<cpS)|((ulong)epMove<<miS)|len6;
 							}
 						}
 					}
 
-
-					// 普通棋步（不含國王）
-					else if(k==oN) {
-						for(i=0;(r=pieceRuleN[p, i])!=NS;i++)
-							if((d=position[r])>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
-					} else if(k!=oK) {
-						if((k&b1)==b1) {
-							pData=slideHitR[p, data=(int)(occuH>>occuShiftH[p]&0x3F)]; r=(byte)(pData&0xFF); d=position[r];
-							if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
-							pData=slideHitL[p, data]; r=(byte)(pData&0xFF); d=position[r];
-							if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
-							pData=slideHitU[p, data=(int)(occuH>>occuShiftV[p]&0x3F)]; r=(byte)(pData&0xFF); d=position[r];
-							if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
-							pData=slideHitD[p, data]; r=(byte)(pData&0xFF); d=position[r];
-							if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
-						}
-						if((k&b2)==b2) {
-							pData=slideHitRU[p, data=(int)(occuH>>occuShiftFS[p]&0x3F)]; r=(byte)(pData&0xFF); d=position[r];
-							if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
-							pData=slideHitLD[p, data]; r=(byte)(pData&0xFF); d=position[r];
-							if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
-							pData=slideHitRD[p, data=(int)(occuH>>occuShiftBS[p]&0x3F)]; r=(byte)(pData&0xFF); d=position[r];
-							if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
-							pData=slideHitLU[p, data]; r=(byte)(pData&0xFF); d=position[r];
-							if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
+					// 普通棋步的話必須要兩碼消歧義外加吃子才行
+					else if(pieceCount[k]>2) {					
+						if(k==oN) {
+							for(i=0;(r=pieceRuleN[p, i])!=NS;i++)
+								if((d=position[r])!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+						} else {
+							if((k&b1)==b1) {
+								pData=slideHitR[p, data=(int)(occuH>>occuShiftH[p]&0x3F)]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+								pData=slideHitL[p, data]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+								pData=slideHitU[p, data=(int)(occuV>>occuShiftV[p]&0x3F)]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+								pData=slideHitD[p, data]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+							}
+							if((k&b2)==b2) {
+								pData=slideHitRU[p, data=(int)(occuFS>>occuShiftFS[p]&0x3F)]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+								pData=slideHitLD[p, data]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+								pData=slideHitRD[p, data=(int)(occuBS>>occuShiftBS[p]&0x3F)]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+								pData=slideHitLU[p, data]; r=(byte)(pData&0xFF); d=position[r];
+								if(d!=0&&d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+							}
 						}
 					}
 				}
@@ -731,26 +797,29 @@ namespace Mushikui_Puzzle_Workshop {
 				tag=checkMove(TML[i]);
 				if(tag>0) {
 					so=(byte)(TML[i]&0x3F);
-					ta=(byte)((TML[i]>>8)&0x3F);
-					ot=(byte)((TML[i]>>24)&0xF);
+					ta=(byte)((TML[i]>>taS)&0x3F);
+					ot=(byte)((TML[i]>>otS)&0xF);
 					if(ot!=wP&&ot!=bP&&ot!=wK&&ot!=bK)
 						DisambList[ta, ot, DisambListLength[ta, ot]++]=so;	// 登錄消歧義名單
-					moveList[depth, j++]=TML[i]|((ulong)tag<<40);
+					moveList[depth, j++]=TML[i]|((ulong)tag<<tgS);
 				}
 			}
 			moveListLength[depth]=(byte)j;
-
+#if DEBUG
+			pseudoMoveCount[7]+=l;
+			totalMoveCount[7]+=j;
+#endif
 			// 全部的合法棋步都出來之後，進行消歧義標籤計算
 			for(i=0;i<j;i++) {
-				ta=(byte)((moveList[depth, i]>>8)&0x3F);
-				ot=(byte)((moveList[depth, i]>>24)&0xF);
+				ta=(byte)((moveList[depth, i]>>taS)&0x3F);
+				ot=(byte)((moveList[depth, i]>>otS)&0xF);
 				if(DisambListLength[ta, ot]<=1) continue;
 				so=(byte)(moveList[depth, i]&0x3F); cx=0; cy=0;
 				for(l=0;l<DisambListLength[ta, ot];l++) {
 					if((DisambList[ta, ot, l]&7)==(so&7)) cx++;
 					if((DisambList[ta, ot, l]>>3)==(so>>3)) cy++;
 				}
-				moveList[depth, i]|=((ulong)(cx==1?b1:(cy==1?b2:b3))<<44);
+				moveList[depth, i]|=((ulong)(cx==1?b1:(cy==1?b2:b3))<<dbS);
 			}
 		}
 	}

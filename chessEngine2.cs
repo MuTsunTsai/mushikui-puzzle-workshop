@@ -13,9 +13,13 @@ namespace Mushikui_Puzzle_Workshop {
 		/////////////////////////////////
 
 		public void test() {
+			ulong a;
+			for(int i=0;i<1<<30;i++) a=(ulong)1<<(i%64);
 		}
 
 		public void test2() {
+			ulong a;
+			for(int i=0;i<1<<30;i++) a=mask[i%64];
 		}
 
 		/////////////////////////////////
@@ -34,10 +38,30 @@ namespace Mushikui_Puzzle_Workshop {
 		// 4 位元 disamb 消歧義 0=不用 1=行 2=列 3=行列
 		// 4 位元 le 基底長度（除了消歧義跟將軍記號之外的長度）
 
+		private const int taS=8;
+		private const int deS=16;
+		private const int otS=24;
+		private const int ntS=28;
+		private const int cpS=32;
+		private const int miS=36;
+		private const int tgS=40;
+		private const int dbS=44;
+		private const int leS=48;
+		
+		private const byte OOMove=1;
+		private const byte OOOMove=2;
+		private const byte epMove=3;
+
+		private const ulong len2=(ulong)2<<leS;
+		private const ulong len3=(ulong)3<<leS;
+		private const ulong len4=(ulong)4<<leS;
+		private const ulong len5=(ulong)5<<leS;
+		private const ulong len6=(ulong)6<<leS;
+
 		private int moveToLength(ulong m) {
-			byte tag=(byte)((m>>40)&0xF);
-			byte disamb=(byte)((m>>44)&0xF);
-			int le=(int)(m>>48);
+			byte tag=(byte)((m>>tgS)&0xF);
+			byte disamb=(byte)((m>>dbS)&0xF);
+			int le=(int)(m>>leS);
 
 			if(disamb!=b0) { le++; if(disamb==b3) le++; }
 			if(tag==b2) le++;
@@ -45,13 +69,13 @@ namespace Mushikui_Puzzle_Workshop {
 		}
 		private string moveToString(ulong m) {
 			byte so=(byte)(m&0x3F);
-			byte ta=(byte)((m>>8)&0x3F);
-			byte ot=(byte)((m>>24)&0xF);
-			byte nt=(byte)((m>>28)&0xF);
-			byte cp=(byte)((m>>32)&0xF);
-			byte mi=(byte)((m>>36)&0xF);
-			byte tag=(byte)((m>>40)&0xF);
-			byte disamb=(byte)((m>>44)&0xF);
+			byte ta=(byte)((m>>taS)&0x3F);
+			byte ot=(byte)((m>>otS)&0xF);
+			byte nt=(byte)((m>>ntS)&0xF);
+			byte cp=(byte)((m>>cpS)&0xF);
+			byte mi=(byte)((m>>miS)&0xF);
+			byte tag=(byte)((m>>tgS)&0xF);
+			byte disamb=(byte)((m>>dbS)&0xF);
 		
 			string s="";
 			if(mi==OOMove) s="O-O";
@@ -112,11 +136,6 @@ namespace Mushikui_Puzzle_Workshop {
 		private const byte cK=10;
 		private const byte cQ=5;
 
-		// 棋步常數
-		private const byte OOMove=1;
-		private const byte OOOMove=2;
-		private const byte epMove=3;
-		
 		// 各種型態的數值簡寫
 		private const byte	b0=0;
 		private const byte	b1=1;
@@ -152,6 +171,8 @@ namespace Mushikui_Puzzle_Workshop {
 		private byte[]		position	=new byte[65];		// 每一個格子的內容，使用於陣列查找，其中最後一格是永久空格		
 		private ulong[]		piecePos	=new ulong[16];		// 每一種棋子的分佈情況（有若干空欄位，但管它的）
 		private byte[]		kingPos		=new byte[2];		// 國王位置
+		
+		private int[]		pieceCount	=new int[16];		// 各種棋子的計數器
 
 		private byte		whoseMove=WT;
 		private byte[]		castlingState	=new byte[maxDepth];	// 四個位元分別為 KQkq
@@ -163,6 +184,11 @@ namespace Mushikui_Puzzle_Workshop {
 		
 		private byte		startSide=WT;
 		private int			startMove=0;
+		
+#if DEBUG
+		public int[] pseudoMoveCount=new int[8];
+		public int[] totalMoveCount=new int[8];
+#endif
 
 		/////////////////////////////////
 		// 棋步資料
@@ -231,6 +257,10 @@ namespace Mushikui_Puzzle_Workshop {
 		public bool load(string FEN) {		// 載入指定的 FEN，傳回真偽值表示成功與否
 			depth=0;
 			fromFEN(FEN);
+#if DEBUG
+			Array.Clear(pseudoMoveCount,0,8);
+			Array.Clear(totalMoveCount,0,8);
+#endif
 			if(checkBasicLegality()) {
 				computeLegalMoves();
 				return true;
@@ -255,6 +285,7 @@ namespace Mushikui_Puzzle_Workshop {
 			fullmoveClock=startMove=1;
 			Array.Clear(position, 0, 65);
 			Array.Clear(piecePos, 0, 16);
+			Array.Clear(pieceCount, 0, 16);
 			occuH=occuV=occuFS=occuBS=0;
 
 			// 下面的語法當中，只要遇到無法解讀的情況就會終止處理，
@@ -279,6 +310,7 @@ namespace Mushikui_Puzzle_Workshop {
 					if(c!=' ') {
 						position[i+j*8]=(byte)pieceIndex(c);
 						piecePos[pieceIndex(c)]|=mask[i+j*8];
+						pieceCount[pieceIndex(c)]++;
 						occuH|=mask[i+j*8];
 						occuV|=maskV[i+j*8];
 						occuFS|=maskFS[i+j*8];
@@ -312,23 +344,21 @@ namespace Mushikui_Puzzle_Workshop {
 			if(Int32.TryParse(FEN[5], out k)) startMove=fullmoveClock=k;
 		}
 
-		// 檢查基本的局面錯誤：雙方必須恰一國王，雙方各至多 16 子，兵不能在底線，雙方不能互將，被將一方得行棋，
+		// 檢查基本的局面錯誤：雙方必須恰一國王、至多 8 兵且至多 16 子，兵不能在底線，雙方不能互將，被將一方得行棋，
 		// 如果有入堡權的話城堡國王必須在原位，如果有吃過路兵權的話對應位置必須要合理
 		// 這些錯誤都會導致之後檢查合法棋步以及行棋的程式出現異常反應
 
 		private bool checkBasicLegality() {
-			int k=0, wC=0, bC=0;
+			int wC=0, bC=0;
 			ulong result;
 
 			// 棋子數檢查
-			foreach(byte p in position) {
-				if(p==b0) continue;
-				if(p==wK) k+=1;
-				else if(p==bK) k+=65;
-				else if(p>>3==WT) wC++;
-				else if(p>>3==BC) bC++;
-			}
-			if(k!=66||wC>15||bC>15) { errorText="Piece number error"; return false; }
+			wC=pieceCount[wP]+pieceCount[wR]+pieceCount[wN]+pieceCount[wB]+pieceCount[wQ];
+			bC=pieceCount[bP]+pieceCount[bR]+pieceCount[bN]+pieceCount[bB]+pieceCount[bQ];
+			if(	pieceCount[wK]!=1||pieceCount[bK]!=1||					// 雙方恰一國王
+				pieceCount[wP]>8||pieceCount[bP]>8||					// 雙方至多八兵
+				wC>15||bC>15)											// 雙方不得超過 16 子
+				{ errorText="Piece number error"; return false; }
 
 			// 底線兵檢查
 			if(((piecePos[wP]|piecePos[bP])&0xFF000000000000FF)!=0) { errorText="Pawn in 1st or 8th rank error"; return false; }
@@ -395,22 +425,22 @@ namespace Mushikui_Puzzle_Workshop {
 				// 斜向檢查，其中有額外的檢查避免日後出現不可能的「吃過路兵導致被將」
 				if((slideRayRU[p, data=(int)(occuFS>>occuShiftFS[p]&0x3F)]&B)!=0) c++;
 				if(enPassantState[depth]!=NS) {
-					result=slideHitRU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>8);
+					result=slideHitRU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>taS);
 					if((position[p2]==bB||position[p2]==bQ)&&p1==enPassantState[depth]-8) return -1;
 				}
 				if((slideRayLD[p, data]&B)!=0) c++;
 				if(enPassantState[depth]!=NS) {
-					result=slideHitRU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>8);
+					result=slideHitRU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>taS);
 					if((position[p2]==bB||position[p2]==bQ)&&p1==enPassantState[depth]-8) return -1;
 				}
 				if((slideRayRD[p, data=(int)(occuBS>>occuShiftBS[p]&0x3F)]&B)!=0) c++;
 				if(enPassantState[depth]!=NS) {
-					result=slideHitRU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>8);
+					result=slideHitRU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>taS);
 					if((position[p2]==bB||position[p2]==bQ)&&p1==enPassantState[depth]-8) return -1;
 				}
 				if((slideRayLU[p, data]&B)!=0) c++;
 				if(enPassantState[depth]!=NS) {
-					result=slideHitLU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>8);
+					result=slideHitLU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>taS);
 					if((position[p2]==bB||position[p2]==bQ)&&p1==enPassantState[depth]-8) return -1;
 				}
 				
@@ -430,22 +460,22 @@ namespace Mushikui_Puzzle_Workshop {
 				// 斜向檢查，其中有額外的檢查避免日後出現不可能的「吃過路兵導致被將」				
 				if((slideRayRU[p, data=(int)(occuFS>>occuShiftFS[p]&0x3F)]&B)!=0) c++;
 				if(enPassantState[depth]!=NS) {
-					result=slideHitRU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>8);
+					result=slideHitRU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>taS);
 					if((position[p2]==wB||position[p2]==wQ)&&p1==enPassantState[depth]+8) return -1;
 				}
 				if((slideRayLD[p, data]&B)!=0) c++;
 				if(enPassantState[depth]!=NS) {
-					result=slideHitLD[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>8);
+					result=slideHitLD[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>taS);
 					if((position[p2]==wB||position[p2]==wQ)&&p1==enPassantState[depth]+8) return -1;
 				}
 				if((slideRayRD[p, data=(int)(occuBS>>occuShiftBS[p]&0x3F)]&B)!=0) c++;
 				if(enPassantState[depth]!=NS) {
-					result=slideHitRD[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>8);
+					result=slideHitRD[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>taS);
 					if((position[p2]==wB||position[p2]==wQ)&&p1==enPassantState[depth]+8) return -1;
 				}
 				if((slideRayLU[p, data]&B)!=0) c++;
 				if(enPassantState[depth]!=NS) {
-					result=slideHitLU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>8);
+					result=slideHitLU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>taS);
 					if((position[p2]==wB||position[p2]==wQ)&&p1==enPassantState[depth]+8) return -1;
 				}
 			}
@@ -461,15 +491,15 @@ namespace Mushikui_Puzzle_Workshop {
 			ulong m=moveList[depth, i];
 			moveHis[depth]=m;
 			byte so=(byte)(m&0x3F);
-			byte ta=(byte)((m>>8)&0x3F);
-			byte de=(byte)((m>>16)&0x3F);
-			byte ot=(byte)((m>>24)&0xF);
-			byte nt=(byte)((m>>28)&0xF);
-			byte cp=(byte)((m>>32)&0xF);
-			byte mi=(byte)((m>>36)&0xF);
+			byte ta=(byte)((m>>taS)&0x3F);
+			byte de=(byte)((m>>deS)&0x3F);
+			byte ot=(byte)((m>>otS)&0xF);
+			byte nt=(byte)((m>>ntS)&0xF);
+			byte cp=(byte)((m>>cpS)&0xF);
+			byte mi=(byte)((m>>miS)&0xF);
 			
 			if(cp!=0) {
-				piecePos[cp]^=mask[de];
+				piecePos[cp]^=mask[de]; pieceCount[cp]--;
 				if(mi==epMove) {
 					position[de]=b0;
 					occuH^=mask[de]; occuV^=maskV[de];
@@ -480,6 +510,7 @@ namespace Mushikui_Puzzle_Workshop {
 				occuH|=mask[ta]; occuV|=maskV[ta];
 				occuFS|=maskFS[ta]; occuBS|=maskBS[ta];
 			}
+			if(ot!=nt) { pieceCount[ot]--; pieceCount[nt]++;}
 			position[so]=b0; position[ta]=nt;
 			piecePos[ot]^=mask[so]; piecePos[nt]|=mask[ta];
 			occuH^=mask[so]; occuV^=maskV[so];
@@ -532,7 +563,7 @@ namespace Mushikui_Puzzle_Workshop {
 			else if(len==4) computeLegalMoves4();
 			else if(len==5) computeLegalMoves5();
 			else if(len==6) computeLegalMoves6();
-			//else if(len==7) computeLegalMoves7();
+			else if(len==7) computeLegalMoves7();
 			else computeLegalMoves();
 			
 			positionDataReady=false;
@@ -541,24 +572,25 @@ namespace Mushikui_Puzzle_Workshop {
 			if(depth==0) return;
 			ulong m=moveHis[depth-1];
 			byte so=(byte)(m&0x3F);
-			byte ta=(byte)((m>>8)&0x3F);
-			byte de=(byte)((m>>16)&0x3F);
-			byte ot=(byte)((m>>24)&0xF);
-			byte nt=(byte)((m>>28)&0xF);
-			byte cp=(byte)((m>>32)&0xF);
-			byte mi=(byte)((m>>36)&0xF);
+			byte ta=(byte)((m>>taS)&0x3F);
+			byte de=(byte)((m>>deS)&0x3F);
+			byte ot=(byte)((m>>otS)&0xF);
+			byte nt=(byte)((m>>ntS)&0xF);
+			byte cp=(byte)((m>>cpS)&0xF);
+			byte mi=(byte)((m>>miS)&0xF);
 
 			position[so]=ot;
 			piecePos[ot]|=mask[so]; piecePos[nt]^=mask[ta];
 			occuH|=mask[so]; occuV|=maskV[so];
 			occuFS|=maskFS[so]; occuBS|=maskBS[so];
 
-			if(cp!=0) { position[de]=cp; piecePos[cp]|=mask[de]; }
+			if(cp!=0) { position[de]=cp; piecePos[cp]|=mask[de]; pieceCount[cp]++;}
 			if(cp==0||mi==epMove) {
 				position[ta]=b0;
 				occuH^=mask[ta]; occuV^=maskV[ta];
 				occuFS^=maskFS[ta]; occuBS^=maskBS[ta];
 			}
+			if(ot!=nt) { pieceCount[nt]--; pieceCount[ot]++;}
 			
 			if(ot==wK||ot==bK) {
 				kingPos[ot>>3]=so;

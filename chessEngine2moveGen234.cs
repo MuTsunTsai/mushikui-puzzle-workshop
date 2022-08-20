@@ -22,7 +22,6 @@ namespace Mushikui_Puzzle_Workshop {
 		private void computeLegalMoves2() {
 			int i, j=0, l=0, pData;
 			byte k, p, r;			// 一些變數，可能會有混著亂用的情況，請多包涵
-			byte tag;
 			int data, p1, p2;
 			ulong result, pPos, d;
 
@@ -117,20 +116,20 @@ namespace Mushikui_Puzzle_Workshop {
 
 			if(checkPieceCount==2) { moveListLength[depth]=0; return;} // 雙將軍的情況就不用繼續了，不可能走兵
 			
-			d=((ulong)oP<<24)|((ulong)oP<<28)|len2;			
+			d=((ulong)oP<<otS)|((ulong)oP<<ntS)|len2;			
 			for(p=0;p<64;p++) {
 				if((k=position[p])==oP) {
 
 					// 只搜尋小兵的直走棋步就好
 					if(k==wP) {
 						if(position[r=(byte)(p+8)]==b0&&(p>>3)!=6) {
-							TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len2;
-							if((p>>3)==1&&position[r=(byte)(p+16)]==b0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|d;
+							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len2;
+							if((p>>3)==1&&position[r=(byte)(p+16)]==b0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|d;
 						}
 					} else if(k==bP) {
 						if(position[r=(byte)(p-8)]==b0&&(p>>3)!=1) {
-							TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len2;
-							if((p>>3)==6&&position[r=(byte)(p-16)]==b0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|d;
+							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len2;
+							if((p>>3)==6&&position[r=(byte)(p-16)]==b0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|d;
 						}
 					}
 				}
@@ -139,13 +138,17 @@ namespace Mushikui_Puzzle_Workshop {
 			// 殆合法棋步以及所有需要的資料都生成完畢，檢驗棋步的合法性、以及將軍對方與否
 			for(i=0, j=0;i<l;i++) if(checkMove2(TML[i])==1) moveList[depth, j++]=TML[i]|0x10000000000;	// 只有當沒有將軍的時候才收錄
 			moveListLength[depth]=(byte)j;
+#if DEBUG
+			pseudoMoveCount[2]+=l;
+			totalMoveCount[2]+=j;
+#endif
 		}
 
 		// 二碼專用的合法性檢查函數
 		
 		private byte checkMove2(ulong m) {
 			byte so=(byte)(m&0x3F);
-			byte ta=(byte)((m>>8)&0x3F);
+			byte ta=(byte)((m>>taS)&0x3F);
 			if(pinByOpp[so]||checkPieceCount==1&&(canStopCheck&mask[ta])==0) return 0;
 			if((canAttackOppKing[oP]&mask[ta])!=0||pinBySelf[so]) return 2;
 			return 1;
@@ -286,23 +289,23 @@ namespace Mushikui_Puzzle_Workshop {
 					// 入堡棋步，這邊只檢查入堡權、當下的將軍以及中間的格子是否空的，攻擊檢查待會再做
 					if(k==wK&&checkPieceCount==0) {
 						if((castlingState[depth]&cwK)!=0&&position[5]==b0&&position[6]==b0)
-							TML[l++]=((ulong)4)|((ulong)6<<8)|((ulong)6<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)OOMove<<36)|len3;
+							TML[l++]=((ulong)4)|((ulong)6<<taS)|((ulong)6<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)OOMove<<miS)|len3;
 					} else if(k==bK&&checkPieceCount==0) {
 						if((castlingState[depth]&cbK)!=0&&position[61]==b0&&position[62]==b0)
-							TML[l++]=((ulong)60)|((ulong)62<<8)|((ulong)62<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)OOMove<<36)|len3;
+							TML[l++]=((ulong)60)|((ulong)62<<taS)|((ulong)62<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)OOMove<<miS)|len3;
 					}
 
 					// 只搜尋小兵的直走棋步就好
 
 					if(k==wP) {
 						if(position[r=(byte)(p+8)]==b0&&(p>>3)!=6) {
-							TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len2;
-							if((p>>3)==1&&position[r=(byte)(p+16)]==b0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len2;
+							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len2;
+							if((p>>3)==1&&position[r=(byte)(p+16)]==b0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len2;
 						}
 					} else if(k==bP) {
 						if(position[r=(byte)(p-8)]==b0&&(p>>3)!=1) {
-							TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len2;
-							if((p>>3)==6&&position[r=(byte)(p-16)]==b0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len2;
+							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len2;
+							if((p>>3)==6&&position[r=(byte)(p-16)]==b0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len2;
 						}
 					}
 
@@ -311,19 +314,19 @@ namespace Mushikui_Puzzle_Workshop {
 					else {
 						if(k==oN) {
 							for(i=0;(r=pieceRuleN[p, i])!=NS;i++)
-								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len3;
+								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
 						} else if(k==oK) {
 							for(i=0;(r=pieceRuleK[p, i])!=NS;i++)
-								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len3;
+								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
 						} else {
 							if((k&b1)==b1)
 								for(i=0;HVRule[p, i, 0]!=NS;i++) for(j=0;(r=HVRule[p, i, j])!=NS;j++) {
-									if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len3;
+									if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
 									else break;
 								}
 							if((k&b2)==b2)
 								for(i=0;DIRule[p, i, 0]!=NS;i++) for(j=0;(r=DIRule[p, i, j])!=NS;j++) {
-									if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len3;
+									if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
 									else break;
 								}
 						}
@@ -351,26 +354,29 @@ namespace Mushikui_Puzzle_Workshop {
 				tag=checkMoveNoEP(TML[i]);
 				if(tag>0) {
 					so=(byte)(TML[i]&0x3F);
-					ta=(byte)((TML[i]>>8)&0x3F);
-					ot=(byte)((TML[i]>>24)&0xF);
+					ta=(byte)((TML[i]>>taS)&0x3F);
+					ot=(byte)((TML[i]>>otS)&0xF);
 					if(ot!=wP&&ot!=bP&&ot!=wK&&ot!=bK)
 						DisambList[ta, ot, DisambListLength[ta, ot]++]=so;	// 登錄消歧義名單
-					moveList[depth, j++]=TML[i]|((ulong)tag<<40);
+					moveList[depth, j++]=TML[i]|((ulong)tag<<tgS);
 				}
 			}
 			moveListLength[depth]=(byte)j;
-
+#if DEBUG
+			pseudoMoveCount[3]+=l;
+			totalMoveCount[3]+=j;
+#endif
 			// 全部的合法棋步都出來之後，進行消歧義標籤計算
 			for(i=0;i<j;i++) {
-				ta=(byte)((moveList[depth, i]>>8)&0x3F);
-				ot=(byte)((moveList[depth, i]>>24)&0xF);
+				ta=(byte)((moveList[depth, i]>>taS)&0x3F);
+				ot=(byte)((moveList[depth, i]>>otS)&0xF);
 				if(DisambListLength[ta, ot]<=1) continue;
 				so=(byte)(moveList[depth, i]&0x3F); cx=0; cy=0;
 				for(l=0;l<DisambListLength[ta, ot];l++) {
 					if((DisambList[ta, ot, l]&7)==(so&7)) cx++;
 					if((DisambList[ta, ot, l]>>3)==(so>>3)) cy++;
 				}
-				moveList[depth, i]|=((ulong)(cx==1?b1:(cy==1?b2:b3))<<44);
+				moveList[depth, i]|=((ulong)(cx==1?b1:(cy==1?b2:b3))<<dbS);
 			}
 		}
 
@@ -378,12 +384,12 @@ namespace Mushikui_Puzzle_Workshop {
 
 		private byte checkMoveNoEP(ulong m) {
 			byte so=(byte)(m&0x3F);
-			byte ta=(byte)((m>>8)&0x3F);
-			byte de=(byte)((m>>16)&0x3F);
-			byte ot=(byte)((m>>24)&0xF);
-			byte nt=(byte)((m>>28)&0xF);
-			byte cp=(byte)((m>>32)&0xF);
-			byte mi=(byte)((m>>36)&0xF);
+			byte ta=(byte)((m>>taS)&0x3F);
+			byte de=(byte)((m>>deS)&0x3F);
+			byte ot=(byte)((m>>otS)&0xF);
+			byte nt=(byte)((m>>ntS)&0xF);
+			byte cp=(byte)((m>>cpS)&0xF);
+			byte mi=(byte)((m>>miS)&0xF);
 
 			// 先排除不合法的情況
 
@@ -561,41 +567,41 @@ namespace Mushikui_Puzzle_Workshop {
 					// 入堡棋步，這邊只檢查入堡權、當下的將軍以及中間的格子是否空的，攻擊檢查待會再做
 					if(k==wK&&checkPieceCount==0) {
 						if((castlingState[depth]&cwK)!=0&&position[5]==b0&&position[6]==b0)
-							TML[l++]=((ulong)4)|((ulong)6<<8)|((ulong)6<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)OOMove<<36)|len3;
+							TML[l++]=((ulong)4)|((ulong)6<<taS)|((ulong)6<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)OOMove<<miS)|len3;
 					} else if(k==bK&&checkPieceCount==0) {
 						if((castlingState[depth]&cbK)!=0&&position[61]==b0&&position[62]==b0)
-							TML[l++]=((ulong)60)|((ulong)62<<8)|((ulong)62<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)OOMove<<36)|len3;
+							TML[l++]=((ulong)60)|((ulong)62<<taS)|((ulong)62<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)OOMove<<miS)|len3;
 					}
 
 					// 小兵棋步，只搜尋直走升變跟單純吃子兩種
 
 					if(k==wP) {
 						if(position[r=(byte)(p+8)]==b0&&(p>>3)==6) {
-							TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wN<<28)|len4;
-							TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wR<<28)|len4;
-							TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wB<<28)|len4;
-							TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)wQ<<28)|len4;
+							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wN<<ntS)|len4;
+							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wR<<ntS)|len4;
+							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wB<<ntS)|len4;
+							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wQ<<ntS)|len4;
 						}
 						if((r=pieceRuleWP[p, 0])!=NS) {
 							if(side(d=position[r])==BC) {
-								if((p>>3)!=6) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
+								if((p>>3)!=6) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
 							}
 							if((r=pieceRuleWP[p, 1])!=NS&&side(d=position[r])==BC&&(p>>3)!=6)
-								TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
+								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
 						}
 					} else if(k==bP) {
 						if(position[r=(byte)(p-8)]==b0&&(p>>3)==1) {
-							TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bN<<28)|len4;
-							TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bR<<28)|len4;
-							TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bB<<28)|len4;
-							TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)bQ<<28)|len4;
+							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bN<<ntS)|len4;
+							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bR<<ntS)|len4;
+							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bB<<ntS)|len4;
+							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bQ<<ntS)|len4;
 						}
 						if((r=pieceRuleBP[p, 0])!=NS) {
 							if(side(d=position[r])==WT) {
-								if((p>>3)!=1) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
+								if((p>>3)!=1) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
 							}
 							if((r=pieceRuleBP[p, 1])!=NS&&side(d=position[r])==WT&&(p>>3)!=1)
-								TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
+								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
 						}
 					}
 
@@ -604,22 +610,22 @@ namespace Mushikui_Puzzle_Workshop {
 					else {
 						if(k==oN) {
 							for(i=0;(r=pieceRuleN[p, i])!=NS;i++)
-								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len3;
-								else if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
+								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
+								else if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
 						} else if(k==oK) {
 							for(i=0;(r=pieceRuleK[p, i])!=NS;i++)
-								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len3;
-								else if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4;
+								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
+								else if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
 						} else {
 							if((k&b1)==b1)
 								for(i=0;HVRule[p, i, 0]!=NS;i++) for(j=0;(r=HVRule[p, i, j])!=NS;j++) {
-									if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len3;
-									else { if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4; break; }
+									if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
+									else { if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4; break; }
 								}
 							if((k&b2)==b2)
 								for(i=0;DIRule[p, i, 0]!=NS;i++) for(j=0;(r=DIRule[p, i, j])!=NS;j++) {
-									if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|len3;
-									else { if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<8)|((ulong)r<<16)|((ulong)k<<24)|((ulong)k<<28)|((ulong)d<<32)|len4; break; }
+									if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
+									else { if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4; break; }
 								}
 						}
 					}
@@ -646,26 +652,29 @@ namespace Mushikui_Puzzle_Workshop {
 				tag=checkMoveNoEP(TML[i]);
 				if(tag>0) {
 					so=(byte)(TML[i]&0x3F);
-					ta=(byte)((TML[i]>>8)&0x3F);
-					ot=(byte)((TML[i]>>24)&0xF);
+					ta=(byte)((TML[i]>>taS)&0x3F);
+					ot=(byte)((TML[i]>>otS)&0xF);
 					if(ot!=wP&&ot!=bP&&ot!=wK&&ot!=bK)
 						DisambList[ta, ot, DisambListLength[ta, ot]++]=so;	// 登錄消歧義名單
-					moveList[depth, j++]=TML[i]|((ulong)tag<<40);
+					moveList[depth, j++]=TML[i]|((ulong)tag<<tgS);
 				}
 			}
 			moveListLength[depth]=(byte)j;
-
+#if DEBUG
+			pseudoMoveCount[4]+=l;
+			totalMoveCount[4]+=j;
+#endif
 			// 全部的合法棋步都出來之後，進行消歧義標籤計算
 			for(i=0;i<j;i++) {
-				ta=(byte)((moveList[depth, i]>>8)&0x3F);
-				ot=(byte)((moveList[depth, i]>>24)&0xF);
+				ta=(byte)((moveList[depth, i]>>taS)&0x3F);
+				ot=(byte)((moveList[depth, i]>>otS)&0xF);
 				if(DisambListLength[ta, ot]<=1) continue;
 				so=(byte)(moveList[depth, i]&0x3F); cx=0; cy=0;
 				for(l=0;l<DisambListLength[ta, ot];l++) {
 					if((DisambList[ta, ot, l]&7)==(so&7)) cx++;
 					if((DisambList[ta, ot, l]>>3)==(so>>3)) cy++;
 				}
-				moveList[depth, i]|=((ulong)(cx==1?b1:(cy==1?b2:b3))<<44);
+				moveList[depth, i]|=((ulong)(cx==1?b1:(cy==1?b2:b3))<<dbS);
 			}
 		}
 

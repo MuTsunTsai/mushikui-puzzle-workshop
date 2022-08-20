@@ -233,6 +233,10 @@ namespace Mushikui_Puzzle_Workshop {
 		/////////////////////////////////
 		// 單一搜尋程式
 		/////////////////////////////////
+
+#if DEBUG
+		private int[] RMC=new int[8];
+#endif
 		
 		private void searchPattern(string FEN, string probs) {
 			int i, j, l=0;
@@ -259,6 +263,9 @@ namespace Mushikui_Puzzle_Workshop {
 						stopSearch();
 					}
 					I=0; C=0; J[0]=0; branchSize[0]=1; hasSolution[0]=false;
+#if DEBUG
+					Array.Clear(RMC,0,8);
+#endif
 					outputString="";
 					while(!STOP&&runSearch()) {
 						TOC+=EN.moveCount;
@@ -273,6 +280,10 @@ namespace Mushikui_Puzzle_Workshop {
 					tbOutput.Text+=outputString;
 				} else MessageBox.Show("Please enter a pattern.");
 				tbOutput.Text+="\r\nPosition:"+posCount+", Transposition:"+transCount+", Collision:"+collCount;
+#if DEBUG
+				for(i=1;i<8;i++)
+					tbOutput.Text+="\r\nPMC:"+EN.pseudoMoveCount[i]+"\r\nTMC:"+EN.totalMoveCount[i]+"\r\nRMC:"+RMC[i]+"\r\n";
+#endif
 				delTransTable();
 			}
 			stopSearch();
@@ -295,6 +306,9 @@ namespace Mushikui_Puzzle_Workshop {
 					runRetract();
 				}
 			} else {
+#if DEBUG
+				RMC[goal[I]>1?goal[I]:1]++;
+#endif
 				EN.play(J[I], goal[I+1]); I++; J[I]=0; branchSize[I]=1; hasSolution[I]=false;
 				if(I>2) {
 					if(transTable.LookUp(EN.positionData)) {
