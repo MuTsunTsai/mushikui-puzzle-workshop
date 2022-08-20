@@ -55,9 +55,14 @@ namespace Mushikui_Puzzle_Workshop
 			public int ty;		// 終點 y
 			public int cp;		// 吃子
 			public int mi;		// 0=普通 1~12=升變 13=王側入堡 14=后側入堡 15=吃過路兵
-			public int tag;		// 0=未知 1=普通 2=將軍 3=雙將軍
+			public int tag;		// 0=未知 1=普通 2=將軍 3=將死
+			public int disamb;	// 0=不用 1=行 2=列 3=行列
+			public int type;
 			public move(int sourceX, int sourceY, int targetX, int targetY, int capturedPiece, int moveIndicator) {
-				sx=sourceX; sy=sourceY; tx=targetX; ty=targetY; cp=capturedPiece; mi=moveIndicator; tag=0;
+				sx=sourceX; sy=sourceY; tx=targetX; ty=targetY; cp=capturedPiece; mi=moveIndicator; tag=0; disamb=0; type=0;
+			}
+			public void set(int sourceX, int sourceY, int targetX, int targetY, int capturedPiece, int moveIndicator) {
+				sx=sourceX; sy=sourceY; tx=targetX; ty=targetY; cp=capturedPiece; mi=moveIndicator; tag=0; disamb=0; type=0;
 			}
 		}
 		private struct stat {
@@ -65,6 +70,9 @@ namespace Mushikui_Puzzle_Workshop
 			public sq		ep;			
 			public int		hm;
 			public stat(cState castlingSt, sq enPassantSt, int halfmoveC) {
+				ep=enPassantSt; cs=castlingSt; hm=halfmoveC;
+			}
+			public void set(cState castlingSt, sq enPassantSt, int halfmoveC) {
 				ep=enPassantSt; cs=castlingSt; hm=halfmoveC;
 			}
 		}
@@ -276,9 +284,9 @@ namespace Mushikui_Puzzle_Workshop
 		public const int maxDepth=512;
 		public const int maxVar=256;
 
-		public string legalMoves(int i) {
-			if(i<0||i>legalMovesLengthHis[depth]) return "";
-			else return legalMovesHis[depth,i];
+		public int legalMovesSL(int i) {
+			if(i<0||i>legalMovesLengthHis[depth]) return 0;
+			else return legalMovesSLHis[depth,i];
 		}		
 		public int legalMovesLength {
 			get { return legalMovesLengthHis[depth];}
@@ -293,7 +301,7 @@ namespace Mushikui_Puzzle_Workshop
 				string s="";
 				for(i=0;i<depth;i++) {
 					if(i==0||i%2!=startSide) { s+=(j+startMove-1)+(startSide==0&&i==0?"...":"."); j++; }
-					s+=moveHis[i]+" ";
+					s+=moveToPGN(moveSysHis[i])+" ";
 				}
 				return s;
 			}
@@ -322,11 +330,10 @@ namespace Mushikui_Puzzle_Workshop
 		/////////////////////////////////
 		
 		private int[]		legalMovesLengthHis;
-		private string[,]	legalMovesHis;
+		private int[,]		legalMovesSLHis;
 		private move[,]		legalMovesSysHis;
 		private stat[]		stateHis;
 		private move[]		moveSysHis;
-		private string[]	moveHis;
 		
 		private int		startSide;
 		private int		startMove;
@@ -352,11 +359,10 @@ namespace Mushikui_Puzzle_Workshop
 			
 			// 陣列初始化
 			legalMovesLengthHis=new int[maxDepth];
-			legalMovesHis=new string[maxDepth,maxVar];
+			legalMovesSLHis=new int[maxDepth,maxVar];
 			legalMovesSysHis=new move[maxDepth,maxVar];
 			stateHis=new stat[maxDepth];
 			moveSysHis=new move[maxDepth];
-			moveHis=new string[maxDepth];
 			depth=0;
 
 			generateRuleData();
@@ -366,7 +372,7 @@ namespace Mushikui_Puzzle_Workshop
 			setPieceCode();
 			positionError=!checkBasicLegality();
 			if(!positionError) {
-				stateHis[depth]=new stat(castlingState, enPassantState, halfmoveClock);
+				stateHis[depth].set(castlingState, enPassantState, halfmoveClock);
 				computeLegalMoves();
 			} else {
 				legalMovesLengthHis[depth]=0;	// 局面出現錯誤的話，直接設定合法棋步為空，此物件從此無法使用
@@ -583,16 +589,16 @@ namespace Mushikui_Puzzle_Workshop
 		
 		private int			checkPieceCount;
 		
-		private move[,,]	DisambList			=new move[8,8,16];
-		private int[,]		DisambListLength	=new int[8,8];
+		private move[,,,]	DisambList			=new move[8,8,13,16];
+		private int[,,]		DisambListLength	=new int[8,8,13];
+
+		private move[]		TML					=new move[maxVar];		// "tempMoveList" 候選棋步清單
 
 #if DEBUG
 		public int CT0=0, CT1=0, CT2=0;
 #endif
 
 		private bool computeLegalMoves() {
-			move[] L=new move[maxVar];
-			int[] tag=new int[maxVar];
 			int sx, sy, i, j=0, k, l=0;
 			bool w;
 			
@@ -632,20 +638,20 @@ namespace Mushikui_Puzzle_Workshop
 					if(k==oP) {
 						w=(whoseMove==1);
 						if(position[sx, sy+(w?1:-1)]==0) {
-							if(sy==(w?6:1)) for(j=oR;j<oK;j++) L[l++]=new move(sx, sy, sx, sy+(w?1:-1), 0, j);
-							else L[l++]=new move(sx, sy, sx, sy+(w?1:-1), 0, 0);
-							if(sy==(w?1:6)&&position[sx, sy+(w?2:-2)]==0) L[l++]=new move(sx, sy, sx, sy+(w?2:-2), 0, 0);
+							if(sy==(w?6:1)) for(j=oR;j<oK;j++) TML[l++].set(sx, sy, sx, sy+(w?1:-1), 0, j);
+							else TML[l++].set(sx, sy, sx, sy+(w?1:-1), 0, 0);
+							if(sy==(w?1:6)&&position[sx, sy+(w?2:-2)]==0) TML[l++].set(sx, sy, sx, sy+(w?2:-2), 0, 0);
 #if DEBUG
 							CT1++;
 #endif
 						}
 						foreach(sq d in pieceRule[k].move[sx, sy]) {
 							if(side(position[d.x, d.y])==1-whoseMove) {
-								if(sy==(w?6:1)) for(j=oR;j<oK;j++) L[l++]=new move(sx, sy, d.x, d.y, position[d.x, d.y], j);
-								else L[l++]=new move(sx, sy, d.x, d.y, position[d.x, d.y], 0);
+								if(sy==(w?6:1)) for(j=oR;j<oK;j++) TML[l++].set(sx, sy, d.x, d.y, position[d.x, d.y], j);
+								else TML[l++].set(sx, sy, d.x, d.y, position[d.x, d.y], 0);
 							}
 							if(d.x==enPassantState.x&&d.y==enPassantState.y)
-								L[l++]=new move(sx, sy, d.x, d.y, w?7:1, epMove);
+								TML[l++].set(sx, sy, d.x, d.y, w?7:1, epMove);
 #if DEBUG
 							CT1++;
 #endif
@@ -655,9 +661,9 @@ namespace Mushikui_Puzzle_Workshop
 					// 入堡棋步，這邊只檢查入堡權、當下的將軍以及中間的格子是否空的，攻擊檢查待會再做
 					if(k==oK&&checkPieceCount==0) {
 						if((k==wK?castlingState.K:castlingState.k)&&position[5, sy]==0&&position[6, sy]==0)
-							L[l++]=new move(4, sy, 6, sy, 0, OOMove);
+							TML[l++].set(4, sy, 6, sy, 0, OOMove);
 						if((k==wK?castlingState.Q:castlingState.q)&&position[3, sy]==0&&position[2, sy]==0&&position[1, sy]==0)
-							L[l++]=new move(4, sy, 2, sy, 0, OOOMove);
+							TML[l++].set(4, sy, 2, sy, 0, OOOMove);
 					}
 					
 					// 普通棋步（含國王的）
@@ -665,7 +671,7 @@ namespace Mushikui_Puzzle_Workshop
 						if(pieceRule[k].type==0) {
 							foreach(sq d in pieceRule[k].move[sx, sy]) {
 								if(side(position[d.x, d.y])!=whoseMove)
-									L[l++]=new move(sx, sy, d.x, d.y, position[d.x, d.y], 0);
+									TML[l++].set(sx, sy, d.x, d.y, position[d.x, d.y], 0);
 #if DEBUG
 								CT1++;
 #endif
@@ -677,10 +683,10 @@ namespace Mushikui_Puzzle_Workshop
 									CT1++;
 #endif
 									if(position[d.x, d.y]==0)
-										L[l++]=new move(sx, sy, d.x, d.y, 0, 0);
+										TML[l++].set(sx, sy, d.x, d.y, 0, 0);
 									else {
 										if(side(position[d.x, d.y])!=whoseMove)
-											L[l++]=new move(sx, sy, d.x, d.y, position[d.x, d.y], 0);
+											TML[l++].set(sx, sy, d.x, d.y, position[d.x, d.y], 0);
 										break;
 									}
 								}
@@ -689,22 +695,31 @@ namespace Mushikui_Puzzle_Workshop
 				}
 			}
 
-			Array.Clear(DisambListLength, 0, 64);
+			Array.Clear(DisambListLength, 0, 832);
 			for(i=0,j=0;i<l;i++) {
-				L[i].tag=checkMove(L[i]);
-				if(L[i].tag>0) {
-					DisambList[L[i].tx, L[i].ty, DisambListLength[L[i].tx, L[i].ty]++]=L[i];	// 登錄消歧義名單
-					legalMovesSysHis[depth, j++]=L[i];
+				TML[i].tag=checkMove(TML[i]);
+				if(TML[i].tag>0) {
+					TML[i].type=position[TML[i].sx, TML[i].sy];
+					DisambList[TML[i].tx, TML[i].ty, TML[i].type,
+						DisambListLength[TML[i].tx, TML[i].ty, TML[i].type]++]=TML[i];	// 登錄消歧義名單
+					legalMovesSysHis[depth, j++]=TML[i];
 				}
 			}
 			legalMovesLengthHis[depth]=j;
-			for(i=0;i<j;i++) legalMovesHis[depth, i]=moveToPGN(legalMovesSysHis[depth, i]);
+			for(i=0;i<j;i++) {				
+				legalMovesSysHis[depth, i].disamb=countDisamb(legalMovesSysHis[depth, i]);
+				legalMovesSLHis[depth, i]=moveToLength(legalMovesSysHis[depth, i]);
+			}
 			
-			if(j==0&&depth>0&&moveHis[depth-1].EndsWith("+"))			// 如果沒有合法棋步可動，且上一步是將軍
-				moveHis[depth-1]=moveHis[depth-1].Replace("+", "#");	// 換掉將軍符號為將死
+			if(j==0&&depth>0&&moveSysHis[depth-1].tag==2)	// 如果沒有合法棋步可動，且上一步是將軍
+				moveSysHis[depth-1].tag=3;					// 換掉將軍符號為將死
 			
 			return j>0;
 		}
+
+		/////////////////////////////////
+		// 合法棋步檢查
+		/////////////////////////////////
 
 		// 生成大部分的棋盤資料（除了 attackByOpp 資料之外）
 		// 這些資料都只要以國王為中心看一次就可以曉得了，所以無須看過整個棋盤
@@ -955,35 +970,64 @@ namespace Mushikui_Puzzle_Workshop
 			else if(m.mi==epMove&&pinBySelf[m.tx, m.ty+(whoseMove==1?-1:1)]) return 2;							// 吃過路兵閃擊（涵蓋了一次閃兩子的橫向閃擊情況）
 			else return 1;																						// 以上皆非的話，就表示沒有將軍對方		
 		}
+
+		/////////////////////////////////
+		// 棋步資料計算
+		/////////////////////////////////
+		
+		private int countDisamb(move m) {
+			int cx=0, cy=0;
+
+			if(m.type!=oP&&m.type!=oK&&DisambListLength[m.tx, m.ty, m.type]>1) {
+				for(int i=0;i<DisambListLength[m.tx, m.ty, m.type];i++)
+					if(position[DisambList[m.tx, m.ty, m.type, i].sx, DisambList[m.tx, m.ty, m.type, i].sy]==m.type) {
+						if(DisambList[m.tx, m.ty, m.type, i].sx==m.sx) cx++; if(DisambList[m.tx, m.ty, m.type, i].sy==m.sy) cy++;
+					}
+				if(cx==1) return 1;
+				else if(cy==1) return 2;
+				else return 3;
+			} else return 0;
+		}
+		private int moveToLength(move m) {
+			int c;
+			if(m.mi==OOMove) c=3;
+			else if(m.mi==OOOMove) c=5;
+			else {
+				if(m.type==oP) {
+					if(m.cp==0) c=2;
+					else c=4+(m.mi==epMove?2:0);
+					if(m.mi>0&&m.mi<13) c+=2;
+				} else {
+					c=1;
+					if(m.disamb==1||m.disamb==2) c++;
+					else if(m.disamb==3) c+=2;
+					if(m.cp!=0) c+=3; else c+=2;
+				}
+			}
+			if(m.tag==2) c++;
+			return c;
+		}
 		private string moveToPGN(move m) {
 			string s="";
-			int sx=m.sx, sy=m.sy, tx=m.tx, ty=m.ty;
-			sq so=new sq(sx,sy), ta=new sq(tx,ty);
-			int k=position[sx,sy], l=0, cx=0, cy=0;
-			
+			sq so=new sq(m.sx, m.sy), ta=new sq(m.tx,m.ty);
+				
 			if(m.mi==OOMove) s="O-O";
 			else if(m.mi==OOOMove) s="O-O-O";
 			else {
-				if(k==wP||k==bP) {
+				if(m.type==wP||m.type==bP) {
 					if(m.cp==0) s=ta.ToString();
 					else s=so.col()+"x"+ta.ToString()+(m.mi==epMove?"ep":"");
 					if(m.mi>0&&m.mi<13) s+="="+pieceName[m.mi<7?m.mi:m.mi-6];
 				} else {
-					s=pieceName[k<7?k:k-6].ToString();
-					if(k!=wK&&k!=bK) {
-						for(int i=0;i<DisambListLength[tx,ty];i++)
-							if(position[DisambList[tx, ty, i].sx, DisambList[tx, ty, i].sy]==k)
-								{ l++; if(DisambList[tx, ty, i].sx==so.x) cx++; if(DisambList[tx, ty, i].sy==so.y) cy++;}
-						if(l>1) {
-							if(cx==1) s+=so.col();
-							else if(cy==1) s+=so.rnk();
-							else s+=so.ToString();
-						}						
-					}
+					s+=pieceName[m.type>wK?m.type-6:m.type];
+					if(m.disamb==1) s+=so.col();
+					else if(m.disamb==2) s+=so.rnk();
+					else if(m.disamb==3) s+=so.ToString();
 					if(m.cp!=0) s+="x"; s+=ta.ToString();
 				}				
 			}
-			if(m.tag==2||m.tag==3) s+="+";			// 關於將死的處理，見合法棋步計算的最後一行
+			if(m.tag==2) s+="+";
+			if(m.tag==3) s+="#";
 			return s;
 		}
 		
@@ -996,7 +1040,6 @@ namespace Mushikui_Puzzle_Workshop
 			retractMove(moveSysHis[depth-1]);
 		}
 		public void play(int i) {
-			moveHis[depth]=legalMovesHis[depth,i];
 			moveSysHis[depth]=legalMovesSysHis[depth,i];
 			playMove(legalMovesSysHis[depth, i]);
 			computeLegalMoves();
@@ -1025,12 +1068,12 @@ namespace Mushikui_Puzzle_Workshop
 			
 			depth++;
 			if(k==wP||k==bP||m.cp!=0) halfmoveClock=0; else halfmoveClock++;
-			stateHis[depth]=new stat(castlingState, enPassantState, halfmoveClock);
+			stateHis[depth].set(castlingState, enPassantState, halfmoveClock);
 			whoseMove=1-whoseMove;
 			if(whoseMove==1) fullmoveClock++;
 			setPieceCode();
-			
-			_positionData=null;
+
+			positionDataReady=false;
 		}
 		private void retractMove(move m) {
 			int sx=m.sx, sy=m.sy, tx=m.tx, ty=m.ty;
@@ -1050,7 +1093,7 @@ namespace Mushikui_Puzzle_Workshop
 
 			// 棋子代碼只有判斷合法棋步的時候需要使用，所以倒退的時候不用重設棋子代碼
 
-			_positionData=null;
+			positionDataReady=false;
 		}
 		private void setPieceCode() {
 			if(whoseMove==1) {
@@ -1063,30 +1106,36 @@ namespace Mushikui_Puzzle_Workshop
 		}
 
 		/////////////////////////////////
-		// hash 處理
+		// 調換表
 		/////////////////////////////////
 
 		public const int hashBits=23;		// 此數值決定要開多大的調換表，2^23 是很理想的大小
 		public const int posDataSize=35;	// 局面資料的大小
 
-		private byte[] _positionData;
+		private byte[] _positionData=new byte[posDataSize];
+		private bool positionDataReady=false;
+		
 		public byte[] positionData {
 			get {
 				int i, j;
-				if(_positionData==null) {
-					_positionData=new byte[posDataSize];
+				if(!positionDataReady) {
 					for(i=0;i<4;i++) for(j=0;j<8;j++) _positionData[j*4+i]=(byte)(position[i*2, j]|(position[i*2+1, j]<<4));
+					
+					// 因為 C# 沒有只使用 4bit 的資料型態，所以這邊怎樣都不可能用 Buffer.BlockCopy，只能跑迴圈
+					// 嚴格來說記錄 13^64 種狀態只需要 30 byte，但那樣節省記憶體沒有意義，徒增運算量
+					
 					_positionData[32]=(byte)((castlingState.K?8:0)|(castlingState.Q?4:0)|(castlingState.k?2:0)|(castlingState.q?1:0));
 					_positionData[33]=(byte)((enPassantState.x==-1?0:(32|(enPassantState.x<<2)|(enPassantState.y==2?2:0)))|(depth>>8));
 					_positionData[34]=(byte)(depth&0xFF);
+					positionDataReady=true;
 				}
 				return _positionData;
 			}
 		}
 		public uint hash {
-			get { return MH2.Hash(positionData)>>(32-hashBits); }
+			get { return MH2.Hash(positionData)>>(32-hashBits);}
 		}
-		private MurmurHash2Unsafe MH2=new MurmurHash2Unsafe();
+		private MurmurHash2Unsafe MH2=new MurmurHash2Unsafe();		// 使用的是我能找到最快的 MurmurHash2 函數
 	
 	}
 }

@@ -33,7 +33,7 @@ namespace Mushikui_Puzzle_Workshop {
 			notifyIcon.Icon=Icon;
 			notifyIcon.Text=Text;
 
-			EN=new chessEngine("rnb1kbnr/p3pppp/8/1Qp5/8/2P5/4PPPP/RNB1KBNR b KQkq - 0 8");
+			//EN=new chessEngine("rnb1k1nr/pppp1p1p/4p3/q7/1b6/2PP4/4PPPP/RN1QKBNR b KQkq - 0 6");
 
 			tstbFEN.Text=chessEngine.initFEN;			
 		}
@@ -142,7 +142,7 @@ namespace Mushikui_Puzzle_Workshop {
 		private bool STOP=true;
 		private chessEngine EN;
 		private Stopwatch SW=new Stopwatch();
-		private const int TOL=1000000;
+		private const int TOL=2000000;
 
 		private int[] goal=new int[chessEngine.maxDepth];
 		private int goalLength;
@@ -271,7 +271,7 @@ namespace Mushikui_Puzzle_Workshop {
 		private bool runSearch() {
 			int hash;
 			if(I==goalLength&&!foundSolution(false)) return false;
-			while(goal[I]>1&&J[I]<EN.legalMovesLength&&EN.legalMoves(J[I]).Length!=goal[I]) J[I]++;
+			while(goal[I]>1&&J[I]<EN.legalMovesLength&&EN.legalMovesSL(J[I])!=goal[I]) J[I]++;
 			if(J[I]==EN.legalMovesLength) {
 				if(I==0) {
 					if(C==0) tbOutput.Text="There's no solution to this pattern.";
@@ -398,7 +398,7 @@ namespace Mushikui_Puzzle_Workshop {
 				runRetract(); C++;
 				if(C>1) return false;
 			}
-			while(goal[I]>1&&J[I]<EN.legalMovesLength&&EN.legalMoves(J[I]).Length!=goal[I]) J[I]++;
+			while(goal[I]>1&&J[I]<EN.legalMovesLength&&EN.legalMovesSL(J[I])!=goal[I]) J[I]++;
 			if(J[I]==EN.legalMovesLength) {
 				if(I==0) return false;
 				else {
