@@ -32,7 +32,7 @@ namespace Mushikui_Puzzle_Workshop {
 			notifyIcon.Icon=Icon;
 			notifyIcon.Text=Text;
 
-			//EN=new chessEngine("8/8/8/1r1b4/BpP5/1K6/8/3k4 b - c3 0 1");
+			EN=new chessEngine("8/8/8/1r1b4/BpP5/1K6/8/3k4 b - c3 0 1");
 
 			tstbFEN.Text=chessEngine.initFEN;			
 		}
@@ -153,13 +153,13 @@ namespace Mushikui_Puzzle_Workshop {
 			SW.Reset(); SW.Start();
 		}
 		private void stopSearch() {
+			delTransTable();
 			if(STOP) return;
 			SW.Stop();
 			tbOutput.Text+="\r\nTime used: "+SW.Elapsed.TotalSeconds; //+"."+SW.ElapsedMilliseconds;
 			toolStripStatusLabel.Text="";
 			tsbtSearch.Checked=false;
 			STOP=true;
-			delTransTable();
 		}
 		
 		// 如果提早關閉視窗，終止搜尋，免得程式在幕後繼續跑
