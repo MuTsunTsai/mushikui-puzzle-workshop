@@ -11,9 +11,12 @@ using System.Diagnostics;				// StopWatch 類別用的
 using Microsoft.VisualBasic.Devices;	// 取得記憶體資訊，需要加入參考 Microsoft.VisualBais
 
 
-
 namespace Mushikui_Puzzle_Workshop {
 	public partial class frmMain:Form {
+
+		/////////////////////////////////
+		// 視窗初始
+		/////////////////////////////////
 	
 		public frmMain() {
 			InitializeComponent();
@@ -32,10 +35,6 @@ namespace Mushikui_Puzzle_Workshop {
 
 			notifyIcon.Icon=Icon;
 			notifyIcon.Text=Text;
-
-			EN.load(chessEngine2.initFEN);
-			
-			EN.play(17); EN.retract();
 
 			//SW.Start();
 			//EN.test();
@@ -202,7 +201,7 @@ namespace Mushikui_Puzzle_Workshop {
 		private HashTable<bool> transTable=new HashTable<bool>(hashBits, chessEngine2.posDataSize);		// false=無解 true=有解
 
 		private int[]	branchSize;
-		private bool[]	hasSolution;	// 目前的 DFS 當中各層是否有解
+		private bool[]	hasSolution;	// 目前的 DF 當中各層是否有解
 
 		private int posCount, transCount, collCount;
 		
@@ -283,8 +282,7 @@ namespace Mushikui_Puzzle_Workshop {
 				} else MessageBox.Show("Please enter a pattern.");
 				tbOutput.Text+="\r\nPosition:"+posCount+", Transposition:"+transCount+", Collision:"+collCount;
 #if DEBUG
-				for(i=1;i<8;i++)
-					tbOutput.Text+="\r\nPMC:"+EN.pseudoMoveCount[i]+"\r\nTMC:"+EN.totalMoveCount[i]+"\r\nRMC:"+RMC[i]+"\r\n";
+				for(i=1;i<8;i++) tbOutput.Text+="\r\nTMC:"+EN.totalMoveCount[i]+"\r\nRMC:"+RMC[i]+"\r\nRAT:"+(float)EN.totalMoveCount[i]/RMC[i]+"\r\n";
 #endif
 				delTransTable();
 			}
@@ -299,19 +297,24 @@ namespace Mushikui_Puzzle_Workshop {
 					else outputString+="\r\n"+C+" solution(s) exist to this pattern.";
 					return false;
 				} else {
+				
+#if !DEBUG	// 為了避免調換表影響偵錯參考用的數值，偵錯模式當中關閉調換表
 					if(I>2) {
 						if(branchSize[I]>branchSizeLowerBound) {			// 後續分歧太小的話就不要管，減少無謂局面的記錄，從根本減少碰撞發生率
 							if(transTable.Insert(EN.positionData, hasSolution[I])) posCount++;
 							else collCount++;
 						}
 					}
+#endif
 					runRetract();
 				}
 			} else {
 #if DEBUG
-				RMC[goal[I]>1?goal[I]:1]++;
+				RMC[1]++;
+				RMC[EN.moveLength(J[I])]++;
 #endif
 				EN.play(J[I]); I++; J[I]=0; branchSize[I]=1; hasSolution[I]=false;
+#if !DEBUG
 				if(I>2) {
 					if(transTable.LookUp(EN.positionData)) {
 						transCount++;
@@ -320,6 +323,7 @@ namespace Mushikui_Puzzle_Workshop {
 						return true;
 					}
 				}
+#endif
 				EN.postPlay(goal[I]);
 			}
 			return true;
@@ -366,7 +370,7 @@ namespace Mushikui_Puzzle_Workshop {
 				}
 			}
 			initTransTable();
-			if(!EN.load(FEN)) {
+			if(!EN.load(FEN, 0)) {
 				MessageBox.Show("Inputed FEN is not a legal position: "+EN.errorText);
 				stopSearch();
 			}

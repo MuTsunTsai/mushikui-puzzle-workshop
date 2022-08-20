@@ -70,8 +70,12 @@
     <Compile Include="chessEngine2.cs" />
     <Compile Include="chessEngine2data.cs" />
     <Compile Include="chessEngine2moveGen.cs" />
-    <Compile Include="chessEngine2moveGen234.cs" />
-    <Compile Include="chessEngine2moveGen567.cs" />
+    <Compile Include="chessEngine2moveGen234.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="chessEngine2moveGen567.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="HashTable.cs" />
     <Compile Include="frmMain.cs">
       <SubType>Form</SubType>

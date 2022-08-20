@@ -13,10 +13,17 @@ namespace Mushikui_Puzzle_Workshop {
 		// 測速程式
 		/////////////////////////////////
 
+		private int[,] a1=new int[5,6];
+		private int[] a2=new int[64];
+
 		public void test() {
+			int i;
+			for(i=0;i<1<<26;i++) a1[i%5, i%6]=i%100;
 		}
 
 		public void test2() {
+			int i;
+			for(i=0;i<1<<26;i++) a2[(i%5)<<3|(i%6)]=i%100;
 		}
 
 		/////////////////////////////////
@@ -54,6 +61,10 @@ namespace Mushikui_Puzzle_Workshop {
 		private const ulong len4=(ulong)4<<leS;
 		private const ulong len5=(ulong)5<<leS;
 		private const ulong len6=(ulong)6<<leS;
+		
+		private const byte tgNormal=0;
+		private const byte tgCheck=1;
+		private const byte tgCheckmate=3;
 
 		private const ulong wOO=((ulong)4)|((ulong)6<<taS)|((ulong)6<<deS)|((ulong)wK<<otS)|((ulong)wK<<ntS)|((ulong)OOMove<<miS)|len3;
 		private const ulong wOOO=((ulong)4)|((ulong)2<<taS)|((ulong)2<<deS)|((ulong)wK<<otS)|((ulong)wK<<ntS)|((ulong)OOOMove<<miS)|len5;
@@ -66,7 +77,7 @@ namespace Mushikui_Puzzle_Workshop {
 			int le=(int)(m>>leS);
 
 			if(disamb!=b0) { le++; if(disamb==b3) le++; }
-			if(tag==b2) le++;
+			if(tag==tgCheck) le++;
 			return le;
 		}
 		private string moveToString(ulong m) {
@@ -95,8 +106,8 @@ namespace Mushikui_Puzzle_Workshop {
 					if(cp!=0) s+="x"; s+=cor(ta);
 				}
 			}
-			if(tag==b2) s+="+";
-			if(tag==b3) s+="#";
+			if(tag==tgCheck) s+="+";
+			if(tag==tgCheckmate) s+="#";
 			return s;
 		}
 
@@ -167,8 +178,8 @@ namespace Mushikui_Puzzle_Workshop {
 		// 棋子佔據情形的位元棋盤，有四種旋轉
 		private ulong occuH;
 		private ulong occuV;
-		private ulong occuFS;
-		private ulong occuBS;
+		private ulong occuF;
+		private ulong occuB;
 
 		private byte[]		position	=new byte[65];		// 每一個格子的內容，使用於陣列查找，其中最後一格是永久空格		
 		private ulong[]		piecePos	=new ulong[16];		// 每一種棋子的分佈情況（有若干空欄位，但管它的）
@@ -190,7 +201,7 @@ namespace Mushikui_Puzzle_Workshop {
 		private int			startMove=0;
 		
 #if DEBUG
-		public int[] pseudoMoveCount=new int[8];
+		public string JUNK;
 		public int[] totalMoveCount=new int[8];
 #endif
 
@@ -258,12 +269,11 @@ namespace Mushikui_Puzzle_Workshop {
 		
 		public string errorText { get; private set;}
 		
-		public bool load(string FEN) { return load(FEN, 0);}
 		public bool load(string FEN, int len) {		// 載入指定的 FEN，傳回真偽值表示成功與否
 			depth=0;
 			fromFEN(FEN);
 #if DEBUG
-			Array.Clear(pseudoMoveCount,0,8);
+			JUNK="";
 			Array.Clear(totalMoveCount,0,8);
 #endif
 			if(checkBasicLegality()) {
@@ -291,7 +301,7 @@ namespace Mushikui_Puzzle_Workshop {
 			Array.Clear(position, 0, 65);
 			Array.Clear(piecePos, 0, 16);
 			Array.Clear(pieceCount, 0, 16);
-			occuH=occuV=occuFS=occuBS=0;
+			occuH=occuV=occuF=occuB=0;
 
 			// 下面的語法當中，只要遇到無法解讀的情況就會終止處理，
 			// 但並不會產生錯誤訊息，總之會一直試圖解讀到結束或者出現語法錯誤為止。
@@ -319,8 +329,8 @@ namespace Mushikui_Puzzle_Workshop {
 						pieceIndex[i+j*8]=pieceCount[pieceCode(c)]++;
 						occuH|=mask[i+j*8];
 						occuV|=maskV[i+j*8];
-						occuFS|=maskFS[i+j*8];
-						occuBS|=maskBS[i+j*8];
+						occuF|=maskF[i+j*8];
+						occuB|=maskB[i+j*8];
 						if(c=='k') kingPos[BC]=(byte)(i+j*8);
 						if(c=='K') kingPos[WT]=(byte)(i+j*8);
 					}
@@ -389,13 +399,13 @@ namespace Mushikui_Puzzle_Workshop {
 					if((pieceRangeN[kingPos[WT]]&piecePos[bN])!=0) { errorText="Impossible check"; return false; }
 					result=slideRangeH[kingPos[WT], occuH>>occuShiftH[kingPos[WT]]&0x3F];
 					if((result&(piecePos[bR]|piecePos[bQ]))!=0&&(result&mask[enPassantState[depth]+8])==0) { errorText="Impossible check"; return false; }
-					result=slideRangeFS[kingPos[WT], occuFS>>occuShiftFS[kingPos[WT]]&0x3F]|slideRangeBS[kingPos[WT], occuBS>>occuShiftBS[kingPos[WT]]&0x3F];
+					result=slideRangeF[kingPos[WT], occuF>>occuShiftF[kingPos[WT]]&0x3F]|slideRangeB[kingPos[WT], occuB>>occuShiftB[kingPos[WT]]&0x3F];
 					if((result&(piecePos[bB]|piecePos[bQ]))!=0&&(result&mask[enPassantState[depth]+8])==0) { errorText="Impossible check"; return false; }
 				} else {
 					if((pieceRangeN[kingPos[BC]]&piecePos[wN])!=0) { errorText="Impossible check"; return false; }
 					result=slideRangeH[kingPos[BC], occuH>>occuShiftH[kingPos[BC]]&0x3F];
 					if((result&(piecePos[wR]|piecePos[wQ]))!=0&&(result&mask[enPassantState[depth]-8])==0) { errorText="Impossible check"; return false; }
-					result=slideRangeFS[kingPos[BC], occuFS>>occuShiftFS[kingPos[BC]]&0x3F]|slideRangeBS[kingPos[BC], occuBS>>occuShiftBS[kingPos[BC]]&0x3F];
+					result=slideRangeF[kingPos[BC], occuF>>occuShiftF[kingPos[BC]]&0x3F]|slideRangeB[kingPos[BC], occuB>>occuShiftB[kingPos[BC]]&0x3F];
 					if((result&(piecePos[wB]|piecePos[wQ]))!=0&&(result&mask[enPassantState[depth]-8])==0) { errorText="Impossible check"; return false; }
 				}
 			}				
@@ -429,7 +439,7 @@ namespace Mushikui_Puzzle_Workshop {
 				if((slideRayD[p, data]&A)!=0) c++;
 
 				// 斜向檢查，其中有額外的檢查避免日後出現不可能的「吃過路兵導致被將」
-				if((slideRayRU[p, data=(int)(occuFS>>occuShiftFS[p]&0x3F)]&B)!=0) c++;
+				if((slideRayRU[p, data=(int)(occuF>>occuShiftF[p]&0x3F)]&B)!=0) c++;
 				if(enPassantState[depth]!=NS) {
 					result=slideHitRU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>taS);
 					if((position[p2]==bB||position[p2]==bQ)&&p1==enPassantState[depth]-8) return -1;
@@ -439,7 +449,7 @@ namespace Mushikui_Puzzle_Workshop {
 					result=slideHitRU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>taS);
 					if((position[p2]==bB||position[p2]==bQ)&&p1==enPassantState[depth]-8) return -1;
 				}
-				if((slideRayRD[p, data=(int)(occuBS>>occuShiftBS[p]&0x3F)]&B)!=0) c++;
+				if((slideRayRD[p, data=(int)(occuB>>occuShiftB[p]&0x3F)]&B)!=0) c++;
 				if(enPassantState[depth]!=NS) {
 					result=slideHitRU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>taS);
 					if((position[p2]==bB||position[p2]==bQ)&&p1==enPassantState[depth]-8) return -1;
@@ -464,7 +474,7 @@ namespace Mushikui_Puzzle_Workshop {
 				if((slideRayD[p, data]&A)!=0) c++;
 
 				// 斜向檢查，其中有額外的檢查避免日後出現不可能的「吃過路兵導致被將」				
-				if((slideRayRU[p, data=(int)(occuFS>>occuShiftFS[p]&0x3F)]&B)!=0) c++;
+				if((slideRayRU[p, data=(int)(occuF>>occuShiftF[p]&0x3F)]&B)!=0) c++;
 				if(enPassantState[depth]!=NS) {
 					result=slideHitRU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>taS);
 					if((position[p2]==wB||position[p2]==wQ)&&p1==enPassantState[depth]+8) return -1;
@@ -474,7 +484,7 @@ namespace Mushikui_Puzzle_Workshop {
 					result=slideHitLD[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>taS);
 					if((position[p2]==wB||position[p2]==wQ)&&p1==enPassantState[depth]+8) return -1;
 				}
-				if((slideRayRD[p, data=(int)(occuBS>>occuShiftBS[p]&0x3F)]&B)!=0) c++;
+				if((slideRayRD[p, data=(int)(occuB>>occuShiftB[p]&0x3F)]&B)!=0) c++;
 				if(enPassantState[depth]!=NS) {
 					result=slideHitRD[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>taS);
 					if((position[p2]==wB||position[p2]==wQ)&&p1==enPassantState[depth]+8) return -1;
@@ -513,12 +523,12 @@ namespace Mushikui_Puzzle_Workshop {
 				if(mi==epMove) {
 					position[de]=b0;
 					occuH^=mask[de]; occuV^=maskV[de];
-					occuFS^=maskFS[de]; occuBS^=maskBS[de];
+					occuF^=maskF[de]; occuB^=maskB[de];
 				}
 			}
 			if(cp==0||mi==epMove) {
 				occuH|=mask[ta]; occuV|=maskV[ta];
-				occuFS|=maskFS[ta]; occuBS|=maskBS[ta];
+				occuF|=maskF[ta]; occuB|=maskB[ta];
 			}
 			if(ot!=nt) {
 				pieceCount[ot]--;
@@ -535,28 +545,28 @@ namespace Mushikui_Puzzle_Workshop {
 			position[so]=b0; position[ta]=nt;
 			piecePos[ot]^=mask[so]; piecePos[nt]|=mask[ta];
 			occuH^=mask[so]; occuV^=maskV[so];
-			occuFS^=maskFS[so]; occuBS^=maskBS[so];
+			occuF^=maskF[so]; occuB^=maskB[so];
 			
 			if(ot==wK||ot==bK) {
 				kingPos[ot>>3]=ta;
 				if(mi==OOMove) {
 					if(ot==wK) {
 						position[7]=0; position[5]=wR; piecePos[wR]^=0xA0;
-						occuH^=0xA0; occuV^=0x100010000000000; occuFS^=0x10001; occuBS^=0x100010000000000;
+						occuH^=0xA0; occuV^=0x100010000000000; occuF^=0x10001; occuB^=0x100010000000000;
 						pieceList[wR, pieceIndex[7]]=5; pieceIndex[5]=pieceIndex[7];
 					} else {
 						position[63]=0; position[61]=bR; piecePos[bR]^=0xA000000000000000;
-						occuH^=0xA000000000000000; occuV^=0x8000800000000000; occuFS^=0x8000000000008000; occuBS^=0x80008000000000;
+						occuH^=0xA000000000000000; occuV^=0x8000800000000000; occuF^=0x8000000000008000; occuB^=0x80008000000000;
 						pieceList[bR, pieceIndex[63]]=61; pieceIndex[61]=pieceIndex[63];
 					}
 				} else if(mi==OOOMove) {
 					if(ot==wK) {
 						position[0]=0; position[3]=wR; piecePos[wR]^=0x9;
-						occuH^=0x9; occuV^=0x1000001; occuFS^=0x100000100000000; occuBS^=0x1000001;
+						occuH^=0x9; occuV^=0x1000001; occuF^=0x100000100000000; occuB^=0x1000001;
 						pieceList[wR, pieceIndex[0]]=3; pieceIndex[3]=pieceIndex[0];
 					} else {
 						position[56]=0; position[59]=bR; piecePos[bR]^=0x900000000000000;
-						occuH^=0x900000000000000; occuV^=0x80000080; occuFS^=0x80000080000000; occuBS^=0x8000000000800000;
+						occuH^=0x900000000000000; occuV^=0x80000080; occuF^=0x80000080000000; occuB^=0x8000000000800000;
 						pieceList[bR, pieceIndex[56]]=59; pieceIndex[59]=pieceIndex[56];
 					}
 				}
@@ -587,7 +597,16 @@ namespace Mushikui_Puzzle_Workshop {
 		}
 		public void postPlay(int len) {
 #if DEBUG
+			// 現在棋步生成的部分已經完全沒有額外的合法性檢查了，安全起見在偵錯模式下檢查是否曾經走過非法棋步
 			if(checkCount((byte)(1-whoseMove))!=0) Debugger.Break();
+
+			//檢查有沒有 occu 資料跟實際狀況不符合的情況
+			//for(int j=0;j<64;j++) {
+			//    if(position[j]==0&&(occuH&mask[j])!=0||position[j]!=0&&(occuH&mask[j])==0) Debugger.Break();
+			//    if(position[j]==0&&(occuV&maskV[j])!=0||position[j]!=0&&(occuV&maskV[j])==0) Debugger.Break();
+			//    if(position[j]==0&&(occuF&maskF[j])!=0||position[j]!=0&&(occuF&maskF[j])==0) Debugger.Break();
+			//    if(position[j]==0&&(occuB&maskB[j])!=0||position[j]!=0&&(occuB&maskB[j])==0) Debugger.Break();
+			//}
 #endif
 			if(len==2) computeLegalMoves2();
 			else if(len==3) computeLegalMoves3();
@@ -612,7 +631,7 @@ namespace Mushikui_Puzzle_Workshop {
 			position[so]=ot;
 			piecePos[ot]|=mask[so]; piecePos[nt]^=mask[ta];
 			occuH|=mask[so]; occuV|=maskV[so];
-			occuFS|=maskFS[so]; occuBS|=maskBS[so];
+			occuF|=maskF[so]; occuB|=maskB[so];
 			if(ot!=nt) {
 				pieceCount[nt]--;
 				if(pieceIndex[ta]!=pieceCount[nt]) {									// 如果被刪除的棋子本來就是 pieceList 中的最後一個那就不管了
@@ -630,11 +649,15 @@ namespace Mushikui_Puzzle_Workshop {
 				position[de]=cp; piecePos[cp]|=mask[de];
 				pieceList[cp, pieceCount[cp]]=de;
 				pieceIndex[de]=pieceCount[cp]++;
+				if(mi==epMove) {
+					occuH|=mask[de]; occuV|=maskV[de];
+					occuF|=maskF[de]; occuB|=maskB[de];
+				}
 			}
 			if(cp==0||mi==epMove) {
 				position[ta]=b0;
 				occuH^=mask[ta]; occuV^=maskV[ta];
-				occuFS^=maskFS[ta]; occuBS^=maskBS[ta];
+				occuF^=maskF[ta]; occuB^=maskB[ta];
 			}
 			
 			if(ot==wK||ot==bK) {
@@ -642,21 +665,21 @@ namespace Mushikui_Puzzle_Workshop {
 				if(mi==OOMove) {
 					if(ot==wK) {
 						position[7]=wR; position[5]=0; piecePos[wR]^=0xA0;
-						occuH^=0xA0; occuV^=0x100010000000000; occuFS^=0x10001; occuBS^=0x100010000000000;
+						occuH^=0xA0; occuV^=0x100010000000000; occuF^=0x10001; occuB^=0x100010000000000;
 						pieceList[wR, pieceIndex[5]]=7; pieceIndex[7]=pieceIndex[5];
 					} else {
 						position[63]=bR; position[61]=0; piecePos[bR]^=0xA000000000000000;
-						occuH^=0xA000000000000000; occuV^=0x8000800000000000; occuFS^=0x8000000000008000; occuBS^=0x80008000000000;
+						occuH^=0xA000000000000000; occuV^=0x8000800000000000; occuF^=0x8000000000008000; occuB^=0x80008000000000;
 						pieceList[bR, pieceIndex[61]]=63; pieceIndex[63]=pieceIndex[61];
 					}
 				} else if(mi==OOOMove) {
 					if(ot==wK) {
 						position[0]=wR; position[3]=0; piecePos[wR]^=0x9;
-						occuH^=0x9; occuV^=0x1000001; occuFS^=0x100000100000000; occuBS^=0x1000001;
+						occuH^=0x9; occuV^=0x1000001; occuF^=0x100000100000000; occuB^=0x1000001;
 						pieceList[wR, pieceIndex[3]]=0; pieceIndex[0]=pieceIndex[3];
 					} else {
 						position[56]=bR; position[59]=0; piecePos[bR]^=0x900000000000000;
-						occuH^=0x900000000000000; occuV^=0x80000080; occuFS^=0x80000080000000; occuBS^=0x8000000000800000;
+						occuH^=0x900000000000000; occuV^=0x80000080; occuF^=0x80000080000000; occuB^=0x8000000000800000;
 						pieceList[bR, pieceIndex[59]]=56; pieceIndex[56]=pieceIndex[59];
 					}
 				}
