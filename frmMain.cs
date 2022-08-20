@@ -313,6 +313,11 @@ namespace Mushikui_Puzzle_Workshop {
 				RMC[1]++;
 				RMC[EN.moveLength(J[I])]++;
 #endif
+				//	可利用類似這樣的程式碼來對錯誤的運算結果進行偵錯
+				//	if(EN.PGN=="1.a4 h5 2.a5 h4 3.a6 h3 4.axb7 hxg2 5.bxa8=B d5 6.Bxd5 Rxh2 7.Bdxg2 Qxd2+ 8.Nxd2 Rxh1 9.Ngf3 Rxf1+ 10.Nxf1 Nf6 11.Qd7+ Nbxd7 12.e4 Nxe4 ")
+				//	Console.WriteLine(EN.FEN);
+				
+				
 				EN.play(J[I]); I++; J[I]=0; branchSize[I]=1; hasSolution[I]=false;
 #if !DEBUG
 				if(I>2) {

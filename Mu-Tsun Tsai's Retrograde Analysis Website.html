@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<!-- saved from url=(0033)http://www.abstreamace.com/retro/ -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=Big5">
+		<title>Mu-Tsun Tsai's Retrograde Analysis Website</title>
+		
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		
+		<style type="text/css">
+			body		{ font-family:"Times new roman";}
+			h3			{ margin-top:40px;}
+			.Mushikui	{ border:1px solid black; padding:10px; margin-top:10px; margin-bottom:10px; background:#EEE;}
+			.mono		{ font-family:monospace;}
+		</style>
+		<script type="text/javascript">
+			function show(o) { o.nextSibling.style.display='block'; o.outerHTML='';}
+		</script>		
+	</head><body>
+		<table width="100%"><tbody><tr><td width="*"></td><td width="900">
+
+
+		<h1>Mu-Tsun Tsai's Retrograde Analysis Website</h1>
+
+		Welcome to my website on retroanalysis!<br>
+		This website is under construction, and currently it hosts only my most recent research project on "mushikui reconstruction".<br><br><br><br>
+
+		<h2>Mushikui Reconstruction</h2>
+
+		The word "mushikui" came from the mushikuizan puzzle, and it's a Japanese term meaning "eaten by bugs".<br>
+		Mushkikui reconstruction is a type of chess game resconstruction task, proposed by me on the retro mailling list in 2011. In each problem, solvers are given a game score, written in PGNep format (explained below), but all the characters are concealed by "*" symbols, so that only the length of the representation of each move is known to the solvers. The task for the solvers is then to recover the entire game score based solely on these informations. All the problems need to have a unique solution in order to be considered as valid.
+
+		<h3>Notation</h3>
+
+		The format I'm using in mushikui reconstruction is what I call the "PGNep" format, which stands for "PGN spec" + "ep". This means that everything in this format is the same as described in the <a href="http://www.chessclub.com/help/PGN-spec" target="_blank">PGN spec</a> document, with only one exception being that I use "ep" to denote en passant move. The main reason why I choose my format this way is because most people in this field seems to get used to put "ep" whenever they write a game score, so I believe this format will make things more "natural" to the people in this field.<br>
+		<br>
+		Summary of this format:
+		<ol>
+			<li>En passant moves are denoted by "ep". For example, "cxd6ep".
+			</li><li>Check moves are marked by "+", and checkmates are marked by "#".<br>
+				No special notations are used for double checks, discover checks, stalemate moves, etc.
+			</li><li>Use "=" to denote promotion. For example, "axb1=Q+".
+			</li><li>Disambiguation is needed. For exmaple, use "Nb1xc3" when there're knights of the same color positioned at d1 and b5, and all the three knights can make capture at c3 legally at that momemnt (that is, they're not pinned).<br>
+				One subtle situation is when one of the moves will give a discover check while the other will not. In this case although we humans can distinguish the two moves by simply noticing if there's a "+" mark right there, but according to the PGN spec 8.2.3.5, we will still use disambiguation notation in this case.
+			</li><li>Use "O-O" and "O-O-O" for castling.
+		</li></ol>
+		
+		Here's one sample problem with solution:
+		<div class="Mushikui">
+			(2011.5.18.1)<br><br>
+			<div class="mono">
+				1.** ** 2.**** **** 3.** ***** 4.** ***** 5.**** ** 6.****** **** 7.*****<br>
+				1.d4 c5 2.dxc5 Qa5+ 3.b4 Qxb4+ 4.c3 Qxc3+ 5.Nxc3 b5 6.cxb6ep axb6 7.Qxd7+
+			</div>
+		</div><br>
+
+		All the problems on this webpage have a unique solution, and are computer checked. <b>I don't consider any sequence that doesn't have a unique solution</b>, even if it does force something, for example its final position or certain moves, etc.
+
+		<h3>Some of my compositions</h3>
+
+		<div class="Mushikui">
+			(2011.5.17.1) This one was my very first mushikui composition, but it's pretty tough to solve.<br><br>
+			<div class="mono">
+				1.** ** 2.**** **** 3.**** **** 4.*** ***** 5.**** ** 6.** **** 7.*** ***** 8.**** **** 9.*** **** 10.***** ***** 11.*** ***** 12.****
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.e4 d5 2.exd5 Qxd5 3.Bb5+ Qxb5 4.Qe2 Qxe2+ 5.Nxe2 e5 6.d4 Bb4+ 7.Nd2 Bxd2+ 8.Bxd2 exd4 9.Bc3 dxc3 10.O-O-O cxb2+ 11.Kd2 b1=N+ 12.Rxb1
+				</div><br>
+				It forces a promotion to knight. Also notice that it's a Schnoebelen promotion.
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.5.17.2) For those who haven't seen this type of problem, this one could be a bit tricky.<br><br>
+			<div class="mono">
+				1.** ** 2.**** **** 3.**** **** 4.*** **** 5.*** ***** 6.**** ***** 7.****<br>
+				<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+					1.e4 d5 2.exd5 Qxd5 3.Bb5+ Qxb5 4.Nh3 Bxh3 5.Rf1 Qxf1+ 6.Kxf1 Bxg2+ 7.Kxg2
+				</div>
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.5.18.2)<br><br>
+			<div class="mono">
+				1.** ** 2.**** ** 3.****** **** 4.** ***** 5.** **** 6.**** ***** 7.**** ****<br>
+				<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+					1.d4 c5 2.dxc5 d5 3.cxd6ep Qa5+ 4.b4 Qxb4+ 5.c3 exd6 6.Qxd6 Qxc3+ 7.Nxc3 Bxd6
+				</div>
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.5.19) Although being very long, this one is actually relatively easy.<br><br>
+			<div class="mono">
+				1.*** ** 2.**** **** 3.*** **** 4.**** ***** 5.**** *** 6.***** **** 7.** *** 8.*** ***** 9.*** **** 10.*** ***** 11.***** ** 12.**** **** 13.***** **** 14.***** *** 15.***** *** 16.*** ** 17.***** ** 18.***** *** 19.** ***** 20.**** **** 21.*** ** 22.** ***** 23.**** **** 24.*** ***** 25.**** ** 26.*** **** 27.** **** 28.** ****
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.Nc3 d5 2.Nxd5 Qxd5 3.Nh3 Bxh3 4.gxh3 Qxd2+ 5.Qxd2 Nd7 6.Qxd7+ Kxd7 7.e4 Nf6 8.Kd2 Nxe4+ 9.Ke3 Nxf2 10.Kf4 Nxh3+ 11.Bxh3+ e6 12.Rd1+ Bd6+ 13.Rxd6+ cxd6 14.Bxe6+ Ke8 15.Bxf7+ Kd8 16.Bd2 a5 17.Bxa5+ b6 18.Bxb6+ Ke7 19.a4 Rxa4+ 20.Rxa4 Kxf7 21.Kg3 g5 22.h4 gxh4+ 23.Rxh4 Rg8+ 24.Rg4 Rxg4+ 25.Kxg4 h6 26.Bc5 dxc5 27.b4 cxb4 28.c3 bxc3
+				</div><br>
+				Previous record holder for the highest stage density (and that's why it's easy).
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.5.19) Very tough!<br><br>
+			<div class="mono">
+				1.*** ** 2.**** ** 3.***** **** 4.*** ***** 5.**** **** 5.**** **** 7.**** *** 8.**** **** 9.*** ***** 10.***** **** 11.** **** 12.** ***** 13.**
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.Nc3 d5 2.Nxd5 f6 3.Nxf6+ exf6 4.Nh3 Qxd2+ 5.Qxd2 Bxh3 6.Qd7+ Nxd7 7.gxh3 Nh6 8.Bxh6 gxh6 9.Bg2 O-O-O 10.Bxb7+ Kxb7 11.a3 Bxa3 12.b4 Bxb4+ 13.c3
+				</div><br>
+				Previous single-stage length record holder.
+			</div>
+		</div><br>
+
+
+		<div class="Mushikui">
+			(2011.5.22)<br><br>
+			<div class="mono">
+				1.** *** 2.**** **** 3.** ** 4.****** **** 5.** ***** 6.** ***** 7.*** ***** 8.**** ** 9.***** *** 10.***** ** 11.******* *** 12.****** 
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.d4 Nh6 2.Bxh6 gxh6 3.d5 c5 4.dxc6ep Qa5+ 5.b4 Qxb4+ 6.c3 Qxc3+ 7.Nd2 Qxd2+ 8.Qxd2 a5 9.cxd7+ Kd8 10.Qxa5+ b6 11.dxc8=R+ Kd7 12.O-O-O+
+				</div><br>
+				First example with Vallad&#227;o theme, and also the first example that forces promotion to rook.<br>
+				Notice that if we add 12...**** to the problem, then we obtain a sequence with a Schnoebelen promotion to rook. The solution is 12...Kxc8.
+			</div>
+		</div><br>
+
+
+		<div class="Mushikui">
+			(2011.5.23) "Cradle to Grave". A long, challenging problem, but still with reasonable difficulty for human solvers.<br><br>
+			<div class="mono">
+				1.** *** 2.** *** 3.** **** 4.***** ** 5.*** *** 6.** ** 7.**** ***** 8.** ***** 9.** ***** 10.**** ***** 11.*** *** 12.***** ***** 13.**** ** 14.**** ** 15.***** ** 16.***** *** 17.***** **** 18.**** **** 19.*** **** 20.**** ** 21.****** ** 22.** ****** 23.**** ** 24.*** ****** 25.****** **** 26.**** **** 27.***** *** 28.** ** 29.***** **** 30.**** *** 31.***** ****
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.e4 Nf6 2.e5 Nh5 3.e6 fxe6 4.Qxh5+ g6 5.Qa5 Bg7 6.d4 c5 7.dxc5 Qxa5+ 8.b4 Qxb4+ 9.c3 Qxc3+ 10.Nxc3 Bxc3+ 11.Bd2 O-O 12.O-O-O Bxd2+ 13.Rxd2 e5 14.Bc4+ d5 15.Bxd5+ e6 16.Bxe6+ Rf7 17.Bxf7+ Kxf7 18.Rd7+ Bxd7 19.Nh3 Bxh3 20.gxh3 b5 21.cxb6ep e4 22.f4 exf3ep 23.bxa7 f2 24.Rg1 fxg1=B 25.axb8=Q Bxh2 26.Qxh2 Rxa2 27.Qxa2+ Kf6 28.h4 g5 29.hxg5+ Kxg5 30.Qg8+ Kh6 31.Qxh7+ Kxh7
+				</div><br>
+				This one achieves the following: (1) Vallad&#227;o theme on both sides (2) both O-O and O-O-O castling (3) forces promotions to queen and bishop (4) forces the game to conclude (draw).<br>
+				Specially thanks to Mario Richter for providing the segment 1.** *** 2.** *** 3.** **** 4.***** **. Without him this cool problem cannot be done.<br>
+				The portion up to the 35th single move is a stage, which is also the shortest sequence I know so far that forces the O-O move (actually it forces both castling alreday).
+			</div>
+		</div><br>
+
+
+		<div class="Mushikui">
+			(2011.5.25)<br><br>
+			<div class="mono">
+				1.** ** 2.**** ** 3.** **** 4.** ***** 5.** ***** 6.** *** 7.***** ** 8.***** *** 9.***** *** 10.***** *** 11.*****
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.d4 c5 2.dxc5 d6 3.a4 dxc5 4.a5 Qxa5+ 5.b4 Qxb4+ 6.c3 Qa4 7.Qxa4+ b5 8.Qxb5+ Nc6 9.Qxc6+ Bd7 10.Qxa8+ Bc8 11.Qxc8#
+				</div><br>
+				First one that forces checkmate. Very hard to compose.<br>
+				THE shortest such sequence is later found by computer. However this one remains the record holder for pure mate.
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.5.26.1) I think this one is impossible for human solvers.<br><br>
+			<div class="mono">
+				1.** *** 2.**** ** 3.*** **** 4.**** **** 5.*** *** 6.***** ***** 7.**** ***** 8.**** **** 9.** ***** 10.*** ***** 11.*** ***** 12.**** *** 13.** ***** 14.** **** 15.***** **** 16.** **** 17.*** **** 18.*** ***** 19.**** ***** 20.****
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.d3 Nh6 2.Bxh6 d5 3.Nc3 gxh6 4.Nxd5 Qxd5 5.Qd2 Bg7 6.O-O-O Bxb2+ 7.Kxb2 Qxa2+ 8.Kxa2 Be6+ 9.c4 Bxc4+ 10.Kb1 Bxd3+ 11.Qc2 Bxc2+ 12.Kxc2 Nd7 13.e4 O-O-O 14.e5 Nxe5 15.Rxd8+ Rxd8 16.g4 Nxg4 17.Nf3 Nxh2 18.Nd2 Rxd2+ 19.Kxd2 Nxf1+ 20.Rxf1 
+				</div><br>
+				First one that forces a one-step pawn move in the opening, in particular 1.d3. THE shortest such sequence is later found by computer.<br>
+				This one is also the current single-stage length record holder. It has 39 single moves and 145 stars.
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.5.26.2) Very easy to solve.<br><br>
+			<div class="mono">
+				1.** ** 2.**** **** 3.** ***** 4.** ***** 5.*** **** 6.**** ***** 7.***
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.d4 c5 2.dxc5 Qa5+ 3.b4 Qxb4+ 4.c3 Qxc3+ 5.Nd2 Qxc5 6.Ndf3 Qxf2+ 7.Kd2
+				</div><br>
+				Previous record holder for the shortest sequence that has a disambiguation move.
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.5.27) Definitely impossible for human solvers. Even for computers, the running time is almost like forever. This is the first time I use parallel computing just for handling a single problem, and still it took a whole day to finish checking the validity of this one, using the older version of my program. With the new version, it only takes less than 40 seconds to check this one, but still this one remains the toughest problem for computer programs so far.<br><br>
+			<div class="mono">
+				1.** ** 2.*** **** 3.**** ** 4.**** *** 5.**** **** 6.** **** 7.***** ** 8.***** ** 9.***** *** 10.***** *** 11.***** *** 12.**** ***** 13.*** ******* 14.*** ** 15.***** **
+			</div>
+			<div style="display: block;">
+				<div class="mono">
+					1.c3 d5 2.Nh3 Bxh3 3.gxh3 d4 4.Qa4+ Qd7 5.Qxa7 dxc3 6.a4 Qxa4 7.Qxa4+ b5 8.Qxb5+ c6 9.Qxc6+ Nd7 10.Qxa8+ Nb8 11.Qxb8+ Kd7 12.Qxf8 cxd2+ 13.Kd1 dxc1=R+ 14.Kd2 f5 15.Qxf5+ e6
+				</div><br>
+				Forces the move 1.c3. THE shortest such sequence is later found by computer.
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.6.5) "7/11". After Mario Richter. Current record holder for (1) most number of consecutive question mark (2) highest question mark density.<br><br>
+			<div class="mono">
+				1.? ? 2.? ? 3.**** ? 4.******* ***** 5.? ***** 6.?
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.d4 e5 2.Kd2 Ke7 3.dxe5 d5 4.exd6ep+ Qxd6+ 5.Ke1 Qxd1+ 6.Kxd1 
+				</div>
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.6.8.1) Not for human.<br><br>
+			<div class="mono">
+				1.** ** 2.*** ** 3.***** *** 4.** ****** 5.**** **** 6.***** **** 7.*** ***** 8.**** ** 9.***** ** 10.***** *** 11.****** *** 12.***** *** 13.**** ** 14.*****
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.g3 e5 2.Bh3 e4 3.Bxd7+ Ke7 4.d4 exd3ep 5.Qxd3 Bxd7 6.Qxd7+ Qxd7 7.Nd2 Qxd2+ 8.Bxd2 g5 9.Bxg5+ f6 10.Bxf6+ Kd7 11.O-O-O+ Bd6 12.Rxd6+ Kc8 13.Bxh8 c6 14.Rxc6+
+				</div><br>
+				Forces the move 1.g3.<br>
+				Unlike my previous compositions that forces one-step pawn opening, this one is very easy for computer to check.
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.6.8.2) Not for human.<br><br>
+			<div class="mono">
+				1.** ** 2.*** ** 3.***** *** 4.** ****** 5.**** **** 6.***** **** 7.*** ***** 8.**** ** 9.** ** 10.***** ** 11.***** *** 12.****** *** 13.**** **** 14.***** *** 15.***** **** 16.*** ***** 17.**
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.e3 e5 2.Bb5 e4 3.Bxd7+ Ke7 4.d4 exd3ep 5.Qxd3 Nxd7 6.Qxd7+ Qxd7 7.Nd2 Qxd2+ 8.Bxd2 b5 9.g4 b4 10.Bxb4+ c5 11.Bxc5+ Kd8 12.O-O-O+ Bd6 13.Bxa7 Rxa7 14.Rxd6+ Rd7 15.Rxd7+ Bxd7 16.Kd1 Bxg4+ 17.f3
+				</div><br>
+				Forces the move 1.e3.<br>
+				This one is like the sibling of (6.8.1).
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.6.9) Probably not for human.<br><br>
+			<div class="mono">
+				1.*** ** 2.** **** 3.**** ** 4.****** ***** 5.**** **** 6.***** **** 7.**** ** 8.***** ** 9.***** **** 10.** *****
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.Nh3 d5 2.e4 Bxh3 3.exd5 e5 4.dxe6ep Qxd2+ 5.Kxd2 Bxg2 6.exf7+ Kxf7 7.Bxg2 h5 8.Qxh5+ g6 9.Qxg6+ Kxg6 10.b4 Bxb4+
+				</div><br>
+				Forces the move 1.Nh3. THE shortest such sequence is later found by computer.
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.6.11) Recommended!<br><br>
+			<div class="mono">
+				1.** *** 2.**** ** 3.**** **** 4.***** **** 5.*** **** 6.******<br>
+				6...*** 7.**** ** 8.******* **** 9.** *** 10.******* *** 11.***** ****
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.d4 Nh6 2.Bxh6 e5 3.dxe5 gxh6 4.Qxd7+ Kxd7 5.Na3 Bxa3 6.O-O-O+<br>
+					6...Ke7 7.Rxd8 f5 8.exf6ep+ Kxd8 9.f7 Rg8 10.fxg8=Q+ Kd7 11.Qxc8+ Kxc8 
+				</div><br>
+				The first line gives a new economic record for castling. THE shortest such sequence is later found by computer.<br>
+				The second line gives a new economic record for the Vallad&#227;o theme.
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.6.15) Requested by DreamYeh.<br><br>
+			<div class="mono">
+				1.** ** 2.**** **** 3.** ***** 4.** ***** 5.**** ** 6.**** *** 7.**** ** 8.****** **** 9.***** *** 10.******* *** 11.*** *****
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.d4 c5 2.dxc5 Qa5+ 3.b4 Qxb4+ 4.c3 Qxc3+ 5.Nxc3 b5 6.Nxb5 Kd8 7.Nxa7 d5 8.cxd6ep Rxa7 9.dxe7+ Ke8 10.exf8=R+ Ke7 11.Kd2 Rxa2+ 
+				</div><br>
+				Forces double check (at 9.dxe7+).
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.6.16.1) Easy.<br><br>
+			<div class="mono">
+				1.*** ** 2.**** **** 3.*** **** 4.**** ***** 5.**** *** 6.***** **** 7.*** *** 8.** ***** 9.*** **** 10.*** ***** 11.***** ** 12.***** ** 13.***** **** 14.**** *** 15.** ** 16.***** **** 17.*** ** 18.***** **** 19.**** *** 20.*****
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.Nc3 d5 2.Nxd5 Qxd5 3.Nh3 Bxh3 4.gxh3 Qxd2+ 5.Qxd2 Nd7 6.Qxd7+ Kxd7 7.Kd2 Nf6 8.e4 Nxe4+ 9.Ke3 Nxf2 10.Kf4 Nxh3+ 11.Bxh3+ f5 12.Bxf5+ e6 13.Bxe6+ Kxe6 14.Re1+ Kd6 15.b4 c5 16.bxc5+ Kxc5 17.Rb1 b5 18.Rxb5+ Kxb5 19.Re5+ Bc5 20.Rxc5+
+				</div><br>
+				Gives a new record for stage density (16/39).
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.6.16.2) Pretty tough for human, but not impossible.<br><br>
+			<div class="mono">
+				1.*** ** 2.** ** 3.*** ***** 4.*** ***** 5.*** ** 6.*** **** 7.***** **** 8.*** *** 9.***** ** 10.** ***** 11.*** ***** 12.**** **** 13.**** **** 14.*** **** 15.*** ***** 16.** *** 17.*** ***** 18.** ** 19.** *** 20.**** ** 21.******* *** 22.*** *** 23.******* *** 24.**** *** 25.*** ***** 26.** **** 27.**** *** 28.**** *** 29.****** ** 30.** ** 31.**** ***** 32.**** ***** 33.**** ** 34.*** **** 35.*** ****** 36.*** ** 37.**** *** 38.**** ***** 
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.Nc3 d5 2.d3 d4 3.Kd2 dxc3+ 4.Ke3 Qxd3+ 5.Kf4 e6 6.Kg5 Qd8+ 7.Qxd8+ Kxd8 8.Kh4 g5+ 9.Bxg5+ f6 10.f4 fxg5+ 11.Kg3 gxf4+ 12.Kxf4 cxb2 13.Rd1+ Bd6+ 14.Kg5 b1=Q 15.Rc1 Qxc1+ 16.e3 h6+ 17.Kg6 Qxc2+ 18.e4 b5 19.a4 Kd7 20.axb5 c5 21.bxc6ep+ Kd8 22.c7+ Kd7 23.cxb8=N+ Ke8 24.Bb5+ Qc6 25.Kh5 Qxb5+ 26.e5 Qxb8 27.exd6 Ne7 28.dxe7 Rf8 29.exf8=B e5 30.g4 e4 31.Bxh6 Qxh2+ 32.Rxh2 Bxg4+ 33.Kxg4 e3 34.Rf2 exf2 35.Kh4 fxg1=R 36.Bd2 a5 37.Bxa5 Rg5 38.Kxg5 Rxa5+
+				</div><br>
+				The first example with Allumwandlung (AUW), that is, promotion to all four types of units.<br>
+				It also gives a new record for the longest problem.
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.7.12.1) Not for human.<br><br>
+			<div class="mono">
+				1.** ** 2.*** **** 3.**** *** 4.***** *** 5.** *** 6.** ** 7.******* ***** 8.*** **** 9.***** ***** 10.*** ** 11.***** ** 12.**** **** 13.*****
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.a3 e5 2.Nf3 Bxa3 3.Nxe5 Kf8 4.Nxd7+ Ke7 5.e4 Qe8 6.e5 f5 7.exf6ep+ Kxd7+ 8.Qe2 Nxf6 9.Qxe8+ Rxe8+ 10.Kd1 b5 11.Bxb5+ c6 12.Rxa3 cxb5 13.Rxa7+ 
+				</div><br>
+				Forces the move 1.a3.
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.7.12.2) Not for human.<br><br>
+			<div class="mono">
+				1.** ** 2.*** **** 3.**** *** 4.***** **** 5.** ***** 6.**** ***** 7.** ***** 8.**** **** 9.**** **** 10.***** *** 11.*** **** 12.***** **** 13.***** *** 14.** ** 15.**** ** 16.******* **** 17.***** 
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.h3 d5 2.Nc3 Bxh3 3.Nxd5 Nf6 4.Nxf6+ exf6 5.b4 Qxd2+ 6.Kxd2 Bxb4+ 7.c3 Bxc3+ 8.Kxc3 Bxg2 9.Rxh7 Bxf1 10.Rxh8+ Ke7 11.Bg5 Bxe2 12.Bxf6+ gxf6 13.Qxe2+ Kd7 14.a4 b5 15.axb5 c5 16.bxc6ep+ Nxc6 17.Rxa7+ 
+				</div><br>
+				Forces the move 1.h3.
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.7.12.3) Not for human.<br><br>
+			<div class="mono">
+				1.** ** 2.*** ** 3.** ****** 4.*** ***** 5.** **** 6.**** ***** 7.***** **** 8.*** **
+				9.*** **** 10.** ******* 11.***** **** 12.** ** 13.**** ** 14.******* **** 15.*** *** 16.*** ******* 17.*** ** 18.** **** 19.** *******
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.b3 e5 2.Ba3 e4 3.d4 exd3ep 4.Bb4 Bxb4+ 5.c3 dxe2 6.Nxe2 Bxc3+ 7.Nexc3 Qe7+ 8.Ne4 f5 9.Qd6 fxe4 10.f4 exf3ep+ 11.Qxe7+ Kxe7 12.b4 c5 13.bxc5 d5 14.cxd6ep+ Kxd6 15.Rg1 f2+ 16.Ke2 fxg1=N+ 17.Kf2 g5 18.h4 gxh4 19.g4 hxg3ep+  
+				</div><br>
+				Forces the move 1.b3.
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.7.12.4) Probably not for human.<br><br>
+			<div class="mono">
+				1.** ** 2.*** ** 3.** ******* 4.**** ***** 5.*** ** 6.***** ** 7.*** *** 8.**** ***** 9.** 
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.f3 d5 2.Kf2 d4 3.e4 dxe3ep+ 4.Kxe3 Qxd2+ 5.Ke4 b5 6.Bxb5+ c6 7.Ke5 Bh3 8.gxh3 Qxh2+ 9.f4  
+				</div><br>
+				Forces the move 1.f3.
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.7.13) Very tough for human.<br><br>
+			<div class="mono">
+				1.** ** 2.*** *** 3.**** ***** 4.**** ***** 5.*** **** 6.*** ** 7.***** ***** 8.*** ***** 9.*** *** 10.***** **** 11.**
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.e3 e6 2.Bc4 Bb4 3.Bxe6 Bxd2+ 4.Kxd2 dxe6+ 5.Kc3 Qf6+ 6.Qd4 e5 7.Qxe5+ Qxe5+ 8.Kb3 Qxe3+ 9.Nc3 Qe2 10.Ncxe2 Be6+ 11.c4 
+				</div><br>
+				Forces one-step pawn move on both sides on their first move.
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2012.7.8) NOT for human.<br><br>
+			<div class="mono">
+				1.** ** 2.** ** 3.** ** 4.**** **** 5.****** ** 6.**** **** 7.***** *****
+				8.**** **** 9.**** ***** 10.**** *** 11.**** ***** 12.** ****
+				13.**** *** 14.**** ** 15.***** ***** 16.**** *** 17.***** *** 18.*** ***
+				19.*** ***** 20.**** ***** 21.*** *** 22.**** *** 23.***** ****
+				24.***** *** 25.***** *** 26.**** **** 27.***** **** 28.** ** 29.** ** 30.** **
+				31.** **** 32.**** **** 33.*** **** 34.** **** 35.**** *** 36.** **** 37.** ***
+				38.**** *** 39.*** **** 40.**** *** 41.*** *** 42.***** *** 43.***** ****
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.a4 h5 2.a5 h4 3.a6 h3 4.axb7 hxg2 5.bxa8=B d5 6.Bxd5 Rxh2 7.Bdxg2 Qxd2+ 8.Nxd2 Rxh1 9.Ngf3 Rxf1+ 10.Nxf1 Nf6 11.Qd7+ Nbxd7 12.e4 Nxe4 13.N1d2 Ne5 14.Nxe4 g5 15.Nexg5 Nxf3+ 16.Bxf3 Kd8 17.Nxf7+ Kd7 18.Bh6 Ke6 19.Kd2 Bxh6+ 20.Ng5+ Bxg5+ 21.Kd3 Bb7 22.Re1+ Be3 23.Rxe3+ Be4+ 24.Rxe4+ Kd7 25.Rxe7+ Kc8 26.Bb7+ Kxb7 27.Rxc7+ Kxc7 28.f4 a5 29.f5 a4 30.f6 a3 31.f7 axb2 32.f8=N b1=Q 33.Ke4 Qb4+ 34.c4 Qe7+ 35.Ne6+ Kb8 36.c5 Qb7+ 37.c6 Ka8 38.Nc7+ Ka7 39.Kd3 Qa6+ 40.Nb5+ Kb8 41.c7+ Kb7 42.c8=Q+ Kb6 43.Qxa6+ Kxa6
+				</div><br>
+				Achieves the following:<br>
+				(1) New record for the longest sequence.<br>
+				(2) Up to move 42.5 is a single stage, setting the new record for the longest single stage.<br>
+				(2) 22 consecutive non-capturing moves, starting from 32.<br>
+				The part from move 32. was found by genetic algorithm.
+			</div>
+		</div><br>
+
+		
+
+
+
+		<h3>Some theories</h3>
+
+		Using the old version of the checking program I wrote, I examine all the possible mushikui sequences up to six single moves. Among them, only two will force a unique solution: <br><br>
+
+		<div class="Mushikui">
+			(2011.5.19, M.-T. Tsai + Computer) All the valid sequences up to 6 single moves:<br><br>
+			<table width="100%">
+				<tbody><tr><td valign="top" width="50%">
+			<div class="mono">
+				1.*** ** 2.**** ****<br>
+				1.** ** 2.**** **** 3.**** ****
+			</div>
+			</td><td valign="top" width="50%">
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.Nc3 d5 2.Nxd5 Qxd5<br>
+					1.e4 d5 2.exd5 Qxd5 3.Bb5+ Qxb5
+				</div>
+			</div>
+			</td></tr></tbody></table>
+		</div><br>
+
+		Later, Mario Richter (2011.5.26) first determined all the valid sequences with 7 or 8 single moves that doesn't contain a disambiguation move. After I rewrite my program, I then completely determined all the remaining valid sequences. The results are shown below. Each of them is a pretty good puzzle to human!<br><br>
+
+		<div class="Mushikui">
+			(2011.6.4, M. Richter + M.-T. Tsai + Computer) All the valid sequences with 7 single moves:<br><br>
+			<table width="100%">
+				<tbody><tr><td valign="top" width="50%">
+			<div class="mono">
+				1.** ** 2.**** *** 3.***** ***** 4.****<br>
+				1.** ** 2.**** **** 3.** ***** 4.**
+			</div>
+			</td><td valign="top" width="50%">
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.d4 e5 2.dxe5 Nf6 3.Qxd7+ Nbxd7 4.exf6<br>
+					1.d4 c5 2.dxc5 Qa5+ 3.b4 Qxb4+ 4.c3
+				</div><br>
+				The first one is THE shortest sequence that has a disambiguation move.
+			</div>
+			</td></tr></tbody></table>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.6.5, M. Richter + M.-T. Tsai + Computer) All the valid sequences with 8 single moves:<br><br>
+			<table width="100%">
+				<tbody><tr><td valign="top" width="50%">
+			<div class="mono">
+				1.** ** 2.*** *** 3.**** ** 4.******* ***** 	<br>
+				1.** ** 2.*** **** 3.** ** 4.****** ***** 		<br>
+				1.** ** 2.*** **** 3.***** **** 4.**** **** 	<br>
+				1.** ** 2.**** ** 3.** ***** 4.**** **** 		<br>
+				1.** ** 2.**** ** 3.**** **** 4.***** **		<br>
+				1.** ** 2.**** ** 3.***** ** 4.**** *****		<br>
+				1.** ** 2.**** ** 3.****** **** 4.**** ***** 	<br>
+				1.** ** 2.**** *** 3.*** ** 4.******* ***** 	<br>
+				1.** ** 2.**** **** 3.** ***** 4.** *****		<br>
+				1.** ** 2.**** **** 3.**** ** 4.***** **		<br>
+				1.** ** 2.**** **** 3.**** *** 4.***** **		<br>
+				1.** *** 2.** *** 3.** **** 4.***** ** 			<br>
+				1.** *** 2.** **** 3.** **** 4.**** ***** 		<br>
+				1.** *** 2.*** ** 3.**** ***** 4.**** **** 		<br>
+				1.** *** 2.**** **** 3.** ** 4.**** ***** 		<br>
+				1.*** ** 2.** ** 3.*** ***** 4.*** ***** 		<br>
+				1.*** ** 2.** **** 3.*** ***** 4.***** ***** 	<br>
+				1.*** ** 2.**** ** 3.*** ** 4.***** ***** 		<br>
+				1.*** ** 2.**** *** 3.*** ***** 4.*** ****		<br>
+				1.*** ** 2.**** **** 3.*** **** 4.**** ***** 	<br>
+				1.*** *** 2.** **** 3.*** ***** 4.*** ***** 	<br>
+				1.*** *** 2.** **** 3.**** **** 4.*** ***** 	
+			</div>
+			</td><td valign="top" width="50%">
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.d4 e5 2.Kd2 Ke7 3.dxe5 d5 4.exd6ep+ Qxd6+ <br>
+					1.e4 d5 2.Bc4 dxc4 3.e5 f5 4.exf6ep Qxd2+ <br>
+					1.e4 d5 2.Bc4 dxe4 3.Bxf7+ Kxf7 4.Qf3+ exf3 <br>
+					1.f4 e5 2.fxe5 d6 3.h4 Qxh4+ 4.Rxh4 dxe5 <br>
+					1.c4 d5 2.Qa4+ b5 3.cxd5 Qxd5 4.Qxb5+ c6 <br>
+					1.e4 d5 2.exd5 b5 3.Bxb5+ c6 4.dxc6 Qxd2+ <br>
+					1.a4 b5 2.axb5 c5 3.bxc6ep dxc6 4.Rxa7 Qxd2+ <br>
+					1.d4 e5 2.dxe5 Ke7 3.Kd2 d5 4.exd6ep+ Qxd6+ <br>
+					1.d4 c5 2.dxc5 Qa5+ 3.b4 Qxb4+ 4.c3 Qxc3+ <br>
+					1.c4 d5 2.cxd5 Qxd5 3.Qa4+ b5 4.Qxb5+ c6 <br>
+					1.c4 d5 2.cxd5 Qxd5 3.Qa4+ Qb5 4.Qxb5+ c6 <br>
+					1.e4 Nf6 2.e5 Nh5 3.e6 fxe6 4.Qxh5+ g6 <br>
+					1.h4 Nf6 2.h5 Nxh5 3.f4 Nxf4 4.Rxh7 Nxg2+ <br>
+					1.e4 Nf6 2.Qg4 d5 3.Qd7+ Nbxd7 4.exd5 Nxd5 <br>
+					1.d4 Nh6 2.Bxh6 gxh6 3.b4 e5 4.dxe5 Bxb4+ <br>
+					1.Nc3 d5 2.d3 d4 3.Kd2 dxc3+ 4.Ke3 Qxd3+ <br>
+					1.Nf3 d5 2.e4 dxe4 3.Ke2 Qxd2+ 4.Nbxd2 exf3+ <br>
+					1.Nc3 d5 2.Nxd5 f5 3.Nh3 f4 4.Ndxf4 Qxd2+ <br>
+					1.Nf3 e5 2.Nxe5 Ne7 3.Nc6 Nexc6 4.Na3 Bxa3 <br>
+					1.Nc3 d5 2.Nxd5 Qxd5 3.Nh3 Bxh3 4.gxh3 Qxd2+ <br>
+					1.Nc3 Nf6 2.e4 Nxe4 3.Ke2 Nxc3+ 4.Ke3 Nxd1+ <br>
+					1.Nc3 Nf6 2.e4 Nxe4 3.Nce2 Nxd2 4.Nf3 Nxf3+
+				</div><br>
+				The last one is THE shortest sequence that has a disambiguous non-capture.
+			</div>
+			</td></tr></tbody></table>
+		</div><br>
+
+		All valid sequences with 9 or 10 single moves is later completely determined as well. See the <a href="http://www.abstreamace.com/retro/mushikuidata.htm">data page</a> for details.<br><br>
+
+		In my opinion, I think a problem of this type is more enjoyable when it consists of a lot of stages, with each stage having a unique solution on its own. For example, Problem (2011.5.19) above can actually be decomposed as follows:<br><br>
+
+		<div class="Mushikui">
+			<input type="button" value="show spoiler" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.*** ** 2.**** **** <br>
+					3.*** **** 4.**** ***** <br>
+					5.**** *** 6.***** <br>
+					6...**** <br>
+					7.** *** 8.*** ***** <br>
+					9.*** **** 10.*** ***** 11.***** <br>
+					11...** 12.**** **** <br>
+					13.***** <br>
+					13...**** 14.***** <br>
+					14...*** 15.***** <br>
+					15...*** 16. *** ** 17.***** ** <br>
+					18.***** <br>
+					18...*** 19.** ***** 20.**** **** <br>
+					21.*** ** 22.** ***** <br>
+					23.**** **** <br>
+					24.*** ***** <br>
+					25.**** <br>
+					25...** 26.*** **** <br>
+					27.** **** <br>
+					28.** **** 
+				</div>
+			</div>
+		</div><br>
+
+		In this decomposition, the end of each line represents a stage that has a unique solution. Totally it has 20 stages and 56 single moves, so I shall define its "stage density" to be 20/56. This is the mushikui sequence I know so far that has the highest stage density.<br><br>
+
+		Sometimes, it is possible to replace some of the moves by question marks "?", to indicated that the move is completely unknown, not even the length of the representation of that move, but still forces a unique solution. For example, the shortest one that allows a question mark is 1.*** ? 2.**** ****, whose solution is still 1.Nc3 d5 2.Nxd5 Qxd5. Another example is 1.? ? 2.**** **** 3.? ***** 4.**, whose solution is 1.d4 c5 2.dxc5 Qa5+ 3.b4 Qxb4+ 4.c3. This one has 3 question marks and 7 single moves, so I shall define its "question mark density" to be 3/7.
+
+		<h3>Some open quests</h3>
+		
+		Here I shall propose several open quests for everybody. In the following, by "sequence" I mean a mushikui sequences with a unique solution. The "length" of a sequence could mean one of the following: number of single moves, or number of stars "*".
+
+		<ol>
+			<li>Find the shortest sequences with 1.a3, 1.b3, 1.e3, 1.f3, 1.g3, and 1.h3.
+			</li><li>Determine all the sequences with eleven single moves, twelve single moves, etc.
+			</li><li>Find a sequence with the highest stage density. Current record: 16/39.
+			</li><li>Fina a longest sequence. Current record: 86 single moves, 302 stars.
+			</li><li>Fina a longest sequence that has only one stage (that is, it has the lowest stage density). Current record: 85 single moves, 298 stars.
+			</li><li>Find shorter sequences that achieves the same theme as in some of my compositions (checkmate, O-O move, Vallad&#227;o, promotion to bishop, etc.)
+			</li><li>Find a sequence with a consecutive ** ******, but it is not an en passant capture. 
+			</li><li>Find sequences with other retro themes like Ceriani-Frolkin, Pronkin, etc.
+			</li><li>Find a sequence with a Schnoebelen promotion to bishop (queen is not possible, and both knight and rook are done).
+			</li><li>Find a sequence with consecutive ** *** **** ***** ****** ******* (2 through 7).
+			</li><li>Find a sequence that contains the most consecutive non-capturing single moves (check is OK). Current record: 22 single moves.
+			</li><li>Prove that there's no sequence without a capturing move.
+		</li></ol>
+
+		Some open quests regarding question marks:
+
+		<ol>
+			<li>Find a sequence with the highest question mark density. Current record: 7/11.
+			</li><li>Fina a sequence with the most number of consecutive question marks. Current record: 4.
+		</li></ol>
+
+
+		<h3>Problems by other composers</h3>
+
+		<div class="Mushikui">
+			(2011.5.25) by DreamYeh<br><br>
+			<div class="mono">
+				1.** ** 2.*** **** 3.***** **** 4.*** **** 5.*** ***** 6.**** ***** 7.**** ** 8.***** *****
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.e4 f5 2.Bb5 fxe4 3.Bxd7+ Bxd7 4.Ke2 Bb5+ 5.Ke3 Qxd2+ 6.Kxe4 Qxc2+ 7.Qxc2 c6 8.Qxc6+ Bxc6+
+				</div><br>
+				Comment: It has a pretty nice counter check structure at the end. I think the toughest part is to decide whether 4...**** is a capture or a check.
+			</div>
+		</div><br>
+
+		<div class="Mushikui">
+			(2011.5.25) by DreamYeh<br><br>
+			<div class="mono">
+				1.** ** 2.*** **** 3.**** **** 4.*** **** 5.*** ***** 6.**** *** 7.**** ***** 8.***** ******
+			</div>
+			<input type="button" value="show solution" onclick="show(this)"><div style="display:none;">
+				<div class="mono">
+					1.e4 d5 2.Ba6 dxe4 3.Bxb7 Bxb7 4.Qf3 exf3 5.Kd1 Qxd2+ 6.Nxd2 Na6 7.gxf3 Bxf3+ 8.Ndxf3 O-O-O+
+				</div><br>
+				Comment: First example that has a disambiguation move. The shortest such sequence is later found by computer.
+			</div>
+		</div><br>
+
+
+
+		<br><br><br><br><br>
+
+		</td><td width="*"></td></tr></tbody></table>
+
+</body></html>

@@ -390,8 +390,8 @@ namespace Mushikui_Puzzle_Workshop {
 				if((j=DisambListLength[ta, ot])<=1) continue;
 				so=(byte)(moveList[depth, i]&0x3F); cx=0; cy=0;
 				for(k=0;k<j;k++) {
-					if((r=relDir[DisambList[ta, ot, k], so])==1) cx++;
-					if(r==0) cy++;
+					if((r=relDir[DisambList[ta, ot, k], so])==13) cx++;
+					if(r==14) cy++;
 				}
 				moveList[depth, i]|=((ulong)(cx==0?b1:(cy==0?b2:b3))<<dbS);
 			}
@@ -765,8 +765,8 @@ namespace Mushikui_Puzzle_Workshop {
 				if((j=DisambListLength[ta, ot])<=1) continue;
 				so=(byte)(moveList[depth, i]&0x3F); cx=0; cy=0;
 				for(k=0;k<j;k++) {
-					if((r=relDir[DisambList[ta, ot, k], so])==1) cx++;
-					if(r==0) cy++;
+					if((r=relDir[DisambList[ta, ot, k], so])==13) cx++;
+					if(r==14) cy++;
 				}
 				moveList[depth, i]|=((ulong)(cx==0?b1:(cy==0?b2:b3))<<dbS);
 			}
@@ -1177,8 +1177,8 @@ namespace Mushikui_Puzzle_Workshop {
 				if((j=DisambListLength[ta, ot])<=1) continue;
 				so=(byte)(moveList[depth, i]&0x3F); cx=0; cy=0;
 				for(k=0;k<j;k++) {
-					if((r=relDir[DisambList[ta, ot, k], so])==1) cx++;
-					if(r==0) cy++;
+					if((r=relDir[DisambList[ta, ot, k], so])==13) cx++;
+					if(r==14) cy++;
 				}
 				moveList[depth, i]|=((ulong)(cx==0?b1:(cy==0?b2:b3))<<dbS);
 			}
