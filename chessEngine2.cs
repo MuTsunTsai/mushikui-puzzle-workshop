@@ -13,9 +13,26 @@ namespace Mushikui_Puzzle_Workshop {
 		/////////////////////////////////
 
 		public void test() {
-			for(int i=0;i<(1<<20);i++) {
-			play(1);
-			retract();
+			move m;
+			byte ot, nt, so, ta, mi, cp, de;
+			for(int i=0;i<(1<<28);i++) {
+				m=new move(1, 1, 1, 1, 1, 1, 1, 1);
+				ot=m.ot; nt=m.nt; so=m.so; ta=m.ta; mi=m.mi; cp=m.cp; de=m.de;
+			}
+		}
+
+		public void test2() {
+			ulong m;
+			byte ot, nt, so, ta, mi, cp, de;
+			for(int i=0;i<(1<<28);i++) {
+				m=1|(1<<6)|(1<<12)|(1<<18)|(1<<22)|(1<<26)|(1<<30)|(1<<32);
+				so=(byte)(m&0x3F);
+				ta=(byte)((m>>6)&0x3F);
+				de=(byte)((m>>12)&0x3F);
+				ot=(byte)((m>>18)&0xF);
+				nt=(byte)((m>>22)&0xF);
+				cp=(byte)((m>>26)&0xF);
+				mi=(byte)((m>>30)&3);
 			}
 		}
 
@@ -140,8 +157,13 @@ namespace Mushikui_Puzzle_Workshop {
 		// 棋盤資料
 		/////////////////////////////////
 
-		private byte[]		position	=new byte[65];		// 每一個格子的內容，使用於陣列查找，其中最後一格是永久空格
-		private ulong[]		occu		=new ulong[4];		// 棋子佔據情形的位元棋盤，有四種旋轉
+		// 棋子佔據情形的位元棋盤，有四種旋轉
+		private ulong occuH;
+		private ulong occuV;
+		private ulong occuFS;
+		private ulong occuBS;
+
+		private byte[]		position	=new byte[65];		// 每一個格子的內容，使用於陣列查找，其中最後一格是永久空格		
 		private ulong[]		piecePos	=new ulong[16];		// 每一種棋子的分佈情況（有若干空欄位，但管它的）
 		private byte[]		kingPos		=new byte[2];		// 國王位置
 
@@ -247,7 +269,7 @@ namespace Mushikui_Puzzle_Workshop {
 			fullmoveClock=startMove=1;
 			Array.Clear(position, 0, 65);
 			Array.Clear(piecePos, 0, 16);
-			Array.Clear(occu, 0, 4);
+			occuH=occuV=occuFS=occuBS=0;
 
 			// 下面的語法當中，只要遇到無法解讀的情況就會終止處理，
 			// 但並不會產生錯誤訊息，總之會一直試圖解讀到結束或者出現語法錯誤為止。
@@ -270,11 +292,11 @@ namespace Mushikui_Puzzle_Workshop {
 					c=ca[(7-j)*8+i];
 					if(c!=' ') {
 						position[i+j*8]=(byte)pieceIndex(c);
-						piecePos[pieceIndex(c)]|=mask[0, i+j*8];
-						occu[0]|=mask[0, i+j*8];
-						occu[1]|=mask[1, i+j*8];
-						occu[2]|=mask[2, i+j*8];
-						occu[3]|=mask[3, i+j*8];
+						piecePos[pieceIndex(c)]|=mask[i+j*8];
+						occuH|=mask[i+j*8];
+						occuV|=maskV[i+j*8];
+						occuFS|=maskFS[i+j*8];
+						occuBS|=maskBS[i+j*8];
 						if(c=='k') kingPos[BC]=(byte)(i+j*8);
 						if(c=='K') kingPos[WT]=(byte)(i+j*8);
 					}
@@ -332,7 +354,7 @@ namespace Mushikui_Puzzle_Workshop {
 			if((castlingState[depth]&cbQ)!=0&&(position[60]!=bK||position[56]!=bR)) { errorText="Castling state q error"; return false; }
 
 			// 吃過路兵權檢查
-			if(enPassantState[depth]>>3==b2&&(whoseMove!=bC||position[enPassantState[depth]+8]!=wP||
+			if(enPassantState[depth]>>3==b2&&(whoseMove!=BC||position[enPassantState[depth]+8]!=wP||
 					position[enPassantState[depth]]!=0||position[enPassantState[depth]-8]!=0))
 				{ errorText="En passant status error"; return false;}
 			if(enPassantState[depth]>>3==b5&&(whoseMove!=WT||position[enPassantState[depth]-8]!=bP||
@@ -342,17 +364,17 @@ namespace Mushikui_Puzzle_Workshop {
 			// 吃過路兵的不可能將軍檢查，避免之後發生「可以用吃過路兵的方式擋住長程子力將軍」這種不可能狀況
 			if(enPassantState[depth]!=NS) {
 				if(whoseMove==WT) {
-					if((pieceRange[wN, kingPos[WT]]&piecePos[bN])!=0) { errorText="Impossible check"; return false; }
-					result=slideRange[0, kingPos[WT], occu[0]>>occuShift[0, kingPos[WT]]&0x3F];
-					if((result&(piecePos[bR]|piecePos[bQ]))!=0&&(result&mask[0, enPassantState[depth]+8])==0) { errorText="Impossible check"; return false; }
-					result=slideRange[2, kingPos[WT], occu[2]>>occuShift[2, kingPos[WT]]&0x3F]|slideRange[3, kingPos[WT], occu[3]>>occuShift[3, kingPos[WT]]&0x3F];
-					if((result&(piecePos[bB]|piecePos[bQ]))!=0&&(result&mask[0, enPassantState[depth]+8])==0) { errorText="Impossible check"; return false; }
+					if((pieceRangeN[kingPos[WT]]&piecePos[bN])!=0) { errorText="Impossible check"; return false; }
+					result=slideRangeH[kingPos[WT], occuH>>occuShiftH[kingPos[WT]]&0x3F];
+					if((result&(piecePos[bR]|piecePos[bQ]))!=0&&(result&mask[enPassantState[depth]+8])==0) { errorText="Impossible check"; return false; }
+					result=slideRangeFS[kingPos[WT], occuFS>>occuShiftFS[kingPos[WT]]&0x3F]|slideRangeBS[kingPos[WT], occuBS>>occuShiftBS[kingPos[WT]]&0x3F];
+					if((result&(piecePos[bB]|piecePos[bQ]))!=0&&(result&mask[enPassantState[depth]+8])==0) { errorText="Impossible check"; return false; }
 				} else {
-					if((pieceRange[wN, kingPos[BC]]&piecePos[wN])!=0) { errorText="Impossible check"; return false; }
-					result=slideRange[0, kingPos[BC], occu[0]>>occuShift[0, kingPos[BC]]&0x3F];
-					if((result&(piecePos[wR]|piecePos[wQ]))!=0&&(result&mask[0, enPassantState[depth]-8])==0) { errorText="Impossible check"; return false; }
-					result=slideRange[2, kingPos[BC], occu[2]>>occuShift[2, kingPos[BC]]&0x3F]|slideRange[3, kingPos[BC], occu[3]>>occuShift[3, kingPos[BC]]&0x3F];
-					if((result&(piecePos[wB]|piecePos[wQ]))!=0&&(result&mask[0, enPassantState[depth]-8])==0) { errorText="Impossible check"; return false; }
+					if((pieceRangeN[kingPos[BC]]&piecePos[wN])!=0) { errorText="Impossible check"; return false; }
+					result=slideRangeH[kingPos[BC], occuH>>occuShiftH[kingPos[BC]]&0x3F];
+					if((result&(piecePos[wR]|piecePos[wQ]))!=0&&(result&mask[enPassantState[depth]-8])==0) { errorText="Impossible check"; return false; }
+					result=slideRangeFS[kingPos[BC], occuFS>>occuShiftFS[kingPos[BC]]&0x3F]|slideRangeBS[kingPos[BC], occuBS>>occuShiftBS[kingPos[BC]]&0x3F];
+					if((result&(piecePos[wB]|piecePos[wQ]))!=0&&(result&mask[enPassantState[depth]-8])==0) { errorText="Impossible check"; return false; }
 				}
 			}				
 
@@ -368,36 +390,77 @@ namespace Mushikui_Puzzle_Workshop {
 		// 計算將軍次數，傳回 -1 表示發生錯誤
 		// 這個函數是初始的時候使用，主要用途是避免使用者亂輸入 FEN
 		private int checkCount(byte side) {
-			int p=kingPos[side], c=0, i, d, data, dm;
+			int p=kingPos[side], c=0, i, data, result;
 			ulong A, B;
 			byte p1, p2;
 			if(side==WT) {
-				if((pieceRange[3, p]&piecePos[bK])!=0) return -1;								// 如果發現國王，直接傳回錯誤	
+				if((pieceRangeK[p]&piecePos[bK])!=0) return -1;								// 如果發現國王，直接傳回錯誤	
 				A=piecePos[bR]|piecePos[bQ]; B=piecePos[bB]|piecePos[bQ];
-				for(i=0;(p1=pieceRule[0, p, i])!=NS;i++) if(position[p1]==bP) c++;				// 小兵跟騎士的將軍因為要計算數目，不能用位元棋盤
-				for(i=0;(p1=pieceRule[2, p, i])!=NS;i++) if(position[p1]==bN) c++;
-				if(c>=2) return -1;																// 兵或騎士的雙將，這是不可能的
-				for(d=0;d<4;d++) if((slideRay[d, p, (int)(occu[dm=d>>1]>>occuShift[dm, p]&0x3F)]&A)!=0) c++;
-				for(d=4;d<8;d++) {
-					if((slideRay[d, p, data=(int)(occu[dm=d>>1]>>occuShift[dm, p]&0x3F)]&B)!=0) c++;
-					if(enPassantState[depth]!=NS) {
-						data=slideHit[d, p, data]; p1=(byte)(data&0xFF); p2=(byte)(data>>8);
-						if((position[p2]==bB||position[p2]==bQ)&&p1==enPassantState[depth]-8) return -1;	// 額外檢查，避免日後出現不可能的「吃過路兵導致被將」
-					}
+				for(i=0;(p1=pieceRuleWP[p, i])!=NS;i++) if(position[p1]==bP) c++;			// 小兵跟騎士的將軍因為要計算數目，不能用位元棋盤
+				for(i=0;(p1=pieceRuleN[p, i])!=NS;i++) if(position[p1]==bN) c++;
+				if(c>=2) return -1;															// 兵或騎士的雙將，這是不可能的
+				
+				// 縱橫檢查
+				if((slideRayR[p, data=(int)(occuH>>occuShiftH[p]&0x3F)]&A)!=0) c++;
+				if((slideRayL[p, data]&A)!=0) c++;
+				if((slideRayU[p, data=(int)(occuV>>occuShiftV[p]&0x3F)]&A)!=0) c++;
+				if((slideRayD[p, data]&A)!=0) c++;
+
+				// 斜向檢查，其中有額外的檢查避免日後出現不可能的「吃過路兵導致被將」
+				if((slideRayRU[p, data=(int)(occuFS>>occuShiftFS[p]&0x3F)]&B)!=0) c++;
+				if(enPassantState[depth]!=NS) {
+					result=slideHitRU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>8);
+					if((position[p2]==bB||position[p2]==bQ)&&p1==enPassantState[depth]-8) return -1;
 				}
+				if((slideRayLD[p, data]&B)!=0) c++;
+				if(enPassantState[depth]!=NS) {
+					result=slideHitRU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>8);
+					if((position[p2]==bB||position[p2]==bQ)&&p1==enPassantState[depth]-8) return -1;
+				}
+				if((slideRayRD[p, data=(int)(occuBS>>occuShiftBS[p]&0x3F)]&B)!=0) c++;
+				if(enPassantState[depth]!=NS) {
+					result=slideHitRU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>8);
+					if((position[p2]==bB||position[p2]==bQ)&&p1==enPassantState[depth]-8) return -1;
+				}
+				if((slideRayLU[p, data]&B)!=0) c++;
+				if(enPassantState[depth]!=NS) {
+					result=slideHitLU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>8);
+					if((position[p2]==bB||position[p2]==bQ)&&p1==enPassantState[depth]-8) return -1;
+				}				
+				
 			} else {
-				if((pieceRange[3, p]&piecePos[wK])!=0) return -1;								// 如果發現國王，直接傳回錯誤	
+				if((pieceRangeK[p]&piecePos[wK])!=0) return -1;								// 如果發現國王，直接傳回錯誤	
 				A=piecePos[wR]|piecePos[wQ]; B=piecePos[wB]|piecePos[wQ];
-				for(i=0;(p1=pieceRule[1, p, i])!=NS;i++) if(position[p1]==wP) c++;				// 小兵跟騎士的將軍因為要計算數目，不能用位元棋盤
-				for(i=0;(p1=pieceRule[2, p, i])!=NS;i++) if(position[p1]==wN) c++;
-				if(c>=2) return -1;																// 兵或騎士的雙將，這是不可能的
-				for(d=0;d<4;d++) if((slideRay[d, p, (int)(occu[dm=d>>1]>>occuShift[dm, p]&0x3F)]&A)!=0) c++;
-				for(d=4;d<8;d++) {
-					if((slideRay[d, p, data=(int)(occu[dm=d>>1]>>occuShift[dm, p]&0x3F)]&B)!=0) c++;
-					if(enPassantState[depth]!=NS) {
-						data=slideHit[d, p, data]; p1=(byte)(data&0xFF); p2=(byte)(data>>8);
-						if((position[p2]==wB||position[p2]==wQ)&&p1==enPassantState[depth]+8) return -1;	// 額外檢查，避免日後出現不可能的「吃過路兵導致被將」
-					}
+				for(i=0;(p1=pieceRuleBP[p, i])!=NS;i++) if(position[p1]==wP) c++;			// 小兵跟騎士的將軍因為要計算數目，不能用位元棋盤
+				for(i=0;(p1=pieceRuleN[p, i])!=NS;i++) if(position[p1]==wN) c++;
+				if(c>=2) return -1;															// 兵或騎士的雙將，這是不可能的
+
+				// 縱橫檢查
+				if((slideRayR[p, data=(int)(occuH>>occuShiftH[p]&0x3F)]&A)!=0) c++;
+				if((slideRayL[p, data]&A)!=0) c++;
+				if((slideRayU[p, data=(int)(occuV>>occuShiftV[p]&0x3F)]&A)!=0) c++;
+				if((slideRayD[p, data]&A)!=0) c++;
+
+				// 斜向檢查，其中有額外的檢查避免日後出現不可能的「吃過路兵導致被將」				
+				if((slideRayRU[p, data=(int)(occuFS>>occuShiftFS[p]&0x3F)]&B)!=0) c++;
+				if(enPassantState[depth]!=NS) {
+					result=slideHitRU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>8);
+					if((position[p2]==wB||position[p2]==wQ)&&p1==enPassantState[depth]+8) return -1;
+				}
+				if((slideRayLD[p, data]&B)!=0) c++;
+				if(enPassantState[depth]!=NS) {
+					result=slideHitLD[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>8);
+					if((position[p2]==wB||position[p2]==wQ)&&p1==enPassantState[depth]+8) return -1;
+				}
+				if((slideRayRD[p, data=(int)(occuBS>>occuShiftBS[p]&0x3F)]&B)!=0) c++;
+				if(enPassantState[depth]!=NS) {
+					result=slideHitRD[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>8);
+					if((position[p2]==wB||position[p2]==wQ)&&p1==enPassantState[depth]+8) return -1;
+				}
+				if((slideRayLU[p, data]&B)!=0) c++;
+				if(enPassantState[depth]!=NS) {
+					result=slideHitLU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>8);
+					if((position[p2]==wB||position[p2]==wQ)&&p1==enPassantState[depth]+8) return -1;
 				}
 			}
 			return c;
@@ -407,45 +470,60 @@ namespace Mushikui_Puzzle_Workshop {
 		// 行棋函數
 		/////////////////////////////////
 
+		//private void addPiece(byte t, byte p) {
+		//    position[p]=t; piecePos[t]|=mask[p];
+		//    occuH|=mask[p]; occuV|=maskV[p];
+		//    occuFS|=maskFS[p]; occuBS|=maskBS[p];
+		//}
+		//private void delPiece(byte t, byte p) {
+		//    position[p]=0; piecePos[t]^=mask[p];
+		//    occuH^=mask[p]; occuV^=maskV[p];
+		//    occuFS^=maskFS[p]; occuBS^=maskBS[p];
+		//}
+
 		public void play(int i) {
 			move m=moveList[depth, i];
 			moveHis[depth]=m;
 			byte ot=m.ot, nt=m.nt, so=m.so, ta=m.ta, mi=m.mi, cp=m.cp, de=m.de;
 
+			//if(cp!=0) delPiece(cp, de);
+			//delPiece(ot, so);
+			//addPiece(nt, ta);
+
 			if(cp!=0) {
-				piecePos[cp]^=mask[0, de];
+				piecePos[cp]^=mask[de];
 				if(mi==epMove) {
 					position[de]=b0;
-					occu[0]^=mask[0, de]; occu[1]^=mask[1, de];
-					occu[2]^=mask[2, de]; occu[3]^=mask[3, de];
+					occuH^=mask[de]; occuV^=maskV[de];
+					occuFS^=maskFS[de]; occuBS^=maskBS[de];
 				}
 			}
 			if(cp==0||mi==epMove) {
-				occu[0]|=mask[0, ta]; occu[1]|=mask[1, ta];
-				occu[2]|=mask[2, ta]; occu[3]|=mask[3, ta];
+				occuH|=mask[ta]; occuV|=maskV[ta];
+				occuFS|=maskFS[ta]; occuBS|=maskBS[ta];
 			}
 			position[so]=b0; position[ta]=nt;
-			piecePos[ot]^=mask[0, so]; piecePos[nt]|=mask[0, ta];
-			occu[0]^=mask[0, so]; occu[1]^=mask[1, so];
-			occu[2]^=mask[2, so]; occu[3]^=mask[3, so];			
+			piecePos[ot]^=mask[so]; piecePos[nt]|=mask[ta];
+			occuH^=mask[so]; occuV^=maskV[so];
+			occuFS^=maskFS[so]; occuBS^=maskBS[so];			
 			
 			if(ot==wK||ot==bK) {
 				kingPos[ot>>3]=ta;
 				if(mi==OOMove) {
 					if(ot==wK) {
 						position[7]=0; position[5]=wR; piecePos[wR]^=0xA0;
-						occu[0]^=0xA0; occu[1]^=0x100010000000000; occu[2]^=0x10001; occu[3]^=0x100010000000000;
+						occuH^=0xA0; occuV^=0x100010000000000; occuFS^=0x10001; occuBS^=0x100010000000000;
 					} else {
 						position[63]=0; position[61]=bR; piecePos[bR]^=0xA000000000000000;
-						occu[0]^=0xA000000000000000; occu[1]^=0x8000800000000000; occu[2]^=0x8000000000008000; occu[3]^=0x80008000000000;
+						occuH^=0xA000000000000000; occuV^=0x8000800000000000; occuFS^=0x8000000000008000; occuBS^=0x80008000000000;
 					}
 				} else if(mi==OOOMove) {
 					if(ot==wK) {
 						position[0]=0; position[3]=wR; piecePos[wR]^=0x9;
-						occu[0]^=0x9; occu[1]^=0x1000001; occu[2]^=0x100000100000000; occu[3]^=0x1000001;
+						occuH^=0x9; occuV^=0x1000001; occuFS^=0x100000100000000; occuBS^=0x1000001;
 					} else {
 						position[56]=0; position[59]=bR; piecePos[bR]^=0x900000000000000;
-						occu[0]^=0x900000000000000; occu[1]^=0x80000080; occu[2]^=0x80000080000000; occu[3]^=0x8000000000800000;
+						occuH^=0x900000000000000; occuV^=0x80000080; occuFS^=0x80000080000000; occuBS^=0x8000000000800000;
 					}
 				}
 			}
@@ -479,35 +557,39 @@ namespace Mushikui_Puzzle_Workshop {
 			move m=moveHis[depth-1];
 			byte ot=m.ot, nt=m.nt, so=m.so, ta=m.ta, mi=m.mi, cp=m.cp, de=m.de;
 
-			position[so]=ot;
-			piecePos[ot]|=mask[0, so]; piecePos[nt]^=mask[0, ta];
-			occu[0]|=mask[0, so]; occu[1]|=mask[1, so];
-			occu[2]|=mask[2, so]; occu[3]|=mask[3, so];
+			//addPiece(ot, so);
+			//delPiece(nt, ta);
+			//if(cp!=0) addPiece(cp, de);
 
-			if(cp!=0) { position[de]=cp; piecePos[cp]|=mask[0, de];}
+			position[so]=ot;
+			piecePos[ot]|=mask[so]; piecePos[nt]^=mask[ta];
+			occuH|=mask[so]; occuV|=maskV[so];
+			occuFS|=maskFS[so]; occuBS|=maskBS[so];
+
+			if(cp!=0) { position[de]=cp; piecePos[cp]|=mask[de]; }
 			if(cp==0||mi==epMove) {
 				position[ta]=b0;
-				occu[0]^=mask[0, ta]; occu[1]^=mask[1, ta];
-				occu[2]^=mask[2, ta]; occu[3]^=mask[3, ta];
-			}			
+				occuH^=mask[ta]; occuV^=maskV[ta];
+				occuFS^=maskFS[ta]; occuBS^=maskBS[ta];
+			}
 			
 			if(ot==wK||ot==bK) {
 				kingPos[ot>>3]=so;
 				if(mi==OOMove) {
 					if(ot==wK) {
 						position[7]=wR; position[5]=0; piecePos[wR]^=0xA0;
-						occu[0]^=0xA0; occu[1]^=0x100010000000000; occu[2]^=0x10001; occu[3]^=0x100010000000000;
+						occuH^=0xA0; occuV^=0x100010000000000; occuFS^=0x10001; occuBS^=0x100010000000000;
 					} else {
 						position[63]=bR; position[61]=0; piecePos[bR]^=0xA000000000000000;
-						occu[0]^=0xA000000000000000; occu[1]^=0x8000800000000000; occu[2]^=0x8000000000008000; occu[3]^=0x80008000000000;
+						occuH^=0xA000000000000000; occuV^=0x8000800000000000; occuFS^=0x8000000000008000; occuBS^=0x80008000000000;
 					}
 				} else if(mi==OOOMove) {
 					if(ot==wK) {
 						position[0]=wR; position[3]=0; piecePos[wR]^=0x9;
-						occu[0]^=0x9; occu[1]^=0x1000001; occu[2]^=0x100000100000000; occu[3]^=0x1000001;
+						occuH^=0x9; occuV^=0x1000001; occuFS^=0x100000100000000; occuBS^=0x1000001;
 					} else {
 						position[56]=bR; position[59]=0; piecePos[bR]^=0x900000000000000;
-						occu[0]^=0x900000000000000; occu[1]^=0x80000080; occu[2]^=0x80000080000000; occu[3]^=0x8000000000800000;
+						occuH^=0x900000000000000; occuV^=0x80000080; occuFS^=0x80000080000000; occuBS^=0x8000000000800000;
 					}
 				}
 			}

@@ -34,11 +34,18 @@ namespace Mushikui_Puzzle_Workshop {
 			notifyIcon.Text=Text;
 
 			//EN.load("rn6/p4k1p/6p1/1pP1p3/8/7P/P4P1P/2K4R w - b6 0 21");
-			//SW.Start();
-			//EN.test();
-			//SW.Stop();
-			//MessageBox.Show(SW.Elapsed.TotalSeconds.ToString());
-			//SW.Reset();
+
+			SW.Start();
+			EN.test();
+			SW.Stop();
+			MessageBox.Show(SW.Elapsed.TotalSeconds.ToString());
+			SW.Reset();
+
+			SW.Start();
+			EN.test2();
+			SW.Stop();
+			MessageBox.Show(SW.Elapsed.TotalSeconds.ToString());
+			SW.Reset();
 
 			//chessEngine E=new chessEngine("rn6/p4k1p/6p1/1pP1p3/8/7P/P4P1P/2K4R w - b6 0 21");
 			//SW.Start();
@@ -47,8 +54,6 @@ namespace Mushikui_Puzzle_Workshop {
 			//MessageBox.Show(SW.Elapsed.TotalSeconds.ToString());
 			//SW.Reset();
 
-			EN.load("8/8/8/8/4k3/8/8/4K2R w K - 0 1");
-			
 			tstbFEN.Text=chessEngine2.initFEN;
 		}
 
@@ -156,7 +161,7 @@ namespace Mushikui_Puzzle_Workshop {
 		private bool STOP=true;
 		private chessEngine2 EN=new chessEngine2();
 		private Stopwatch SW=new Stopwatch();
-		private const int TOL=2000000;
+		private const int TOL=4000000;
 
 		private int[] goal=new int[chessEngine2.maxDepth];
 		private int goalLength;
