@@ -97,12 +97,12 @@ namespace Mushikui_Puzzle_Workshop {
 			}
 			result=slideRayRD[p, data=(int)(occuBS>>occuShiftBS[p]&0x3F)];
 			if((result&pPos)!=0) { checkPieceCount++; canStopCheck|=result; } else {
-				pData=slideHitLD[p, data]; p1=pData&0xFF; p2=pData>>8;
+				pData=slideHitRD[p, data]; p1=pData&0xFF; p2=pData>>8;
 				if((position[p2]==pB||position[p2]==pQ)&&position[p1]>>3==whoseMove) pinByOpp[p1]=true;
 			}
 			result=slideRayLU[p, data];
 			if((result&pPos)!=0) { checkPieceCount++; canStopCheck|=result; } else {
-				pData=slideHitLD[p, data]; p1=pData&0xFF; p2=pData>>8;
+				pData=slideHitLU[p, data]; p1=pData&0xFF; p2=pData>>8;
 				if((position[p2]==pB||position[p2]==pQ)&&position[p1]>>3==whoseMove) pinByOpp[p1]=true;
 			}
 
@@ -137,15 +137,6 @@ namespace Mushikui_Puzzle_Workshop {
 				k=position[p];
 				if(k==b0) continue;
 				if((k>>3)==whoseMove) {
-
-					// 入堡棋步，這邊只檢查入堡權、當下的將軍以及中間的格子是否空的，攻擊檢查待會再做
-					if(k==wK&&checkPieceCount==0) {
-						if((castlingState[depth]&cwQ)!=0&&position[1]==b0&&position[2]==b0&&position[3]==b0)
-							TML[l++]=((ulong)4)|((ulong)2<<taS)|((ulong)2<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)OOOMove<<miS)|len5;
-					} else if(k==bK&&checkPieceCount==0) {
-						if((castlingState[depth]&cbQ)!=0&&position[57]==b0&&position[58]==b0&&position[59]==b0)
-							TML[l++]=((ulong)60)|((ulong)58<<taS)|((ulong)58<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)OOOMove<<miS)|len5;
-					}
 
 					// 小兵棋步，只搜尋直走升變跟單純吃子兩種
 
@@ -248,6 +239,15 @@ namespace Mushikui_Puzzle_Workshop {
 				}
 			}
 
+			// 入堡棋步，這邊只檢查入堡權、當下的將軍以及中間的格子是否空的，攻擊檢查待會再做
+			if(checkPieceCount==0) {
+				if(whoseMove==WT) {
+					if((castlingState[depth]&cwQ)!=0&&position[1]==b0&&position[2]==b0&&position[3]==b0) TML[l++]=wOOO;
+				} else {
+					if((castlingState[depth]&cbQ)!=0&&position[57]==b0&&position[58]==b0&&position[59]==b0) TML[l++]=bOOO;
+				}
+			}
+
 			// 殆合法棋步以及所有需要的資料都生成完畢，檢驗棋步的合法性、以及將軍對方與否
 			Array.Clear(DisambListLength, 0, 1024);
 			for(i=0, j=0;i<l;i++) {
@@ -270,13 +270,13 @@ namespace Mushikui_Puzzle_Workshop {
 			for(i=0;i<j;i++) {
 				ta=(byte)((moveList[depth, i]>>taS)&0x3F);
 				ot=(byte)((moveList[depth, i]>>otS)&0xF);
-				if(DisambListLength[ta, ot]<=1) continue;
+				if((l=DisambListLength[ta, ot])<=1) continue;
 				so=(byte)(moveList[depth, i]&0x3F); cx=0; cy=0;
-				for(l=0;l<DisambListLength[ta, ot];l++) {
-					if((DisambList[ta, ot, l]&7)==(so&7)) cx++;
-					if((DisambList[ta, ot, l]>>3)==(so>>3)) cy++;
+				for(k=0;k<l;k++) {
+					if((r=relDir[DisambList[ta, ot, k], so])==1) cx++;
+					if(r==0) cy++;
 				}
-				moveList[depth, i]|=((ulong)(cx==1?b1:(cy==1?b2:b3))<<dbS);
+				moveList[depth, i]|=((ulong)(cx==0?b1:(cy==0?b2:b3))<<dbS);
 			}
 		}
 
@@ -375,12 +375,12 @@ namespace Mushikui_Puzzle_Workshop {
 			}
 			result=slideRayRD[p, data=(int)(occuBS>>occuShiftBS[p]&0x3F)];
 			if((result&pPos)!=0) { checkPieceCount++; canStopCheck|=result; } else {
-				pData=slideHitLD[p, data]; p1=pData&0xFF; p2=pData>>8;
+				pData=slideHitRD[p, data]; p1=pData&0xFF; p2=pData>>8;
 				if((position[p2]==pB||position[p2]==pQ)&&position[p1]>>3==whoseMove) pinByOpp[p1]=true;
 			}
 			result=slideRayLU[p, data];
 			if((result&pPos)!=0) { checkPieceCount++; canStopCheck|=result; } else {
-				pData=slideHitLD[p, data]; p1=pData&0xFF; p2=pData>>8;
+				pData=slideHitLU[p, data]; p1=pData&0xFF; p2=pData>>8;
 				if((position[p2]==pB||position[p2]==pQ)&&position[p1]>>3==whoseMove) pinByOpp[p1]=true;
 			}
 
@@ -417,15 +417,6 @@ namespace Mushikui_Puzzle_Workshop {
 				k=position[p];
 				if(k==b0) continue;
 				if((k>>3)==whoseMove) {
-
-					// 入堡棋步，這邊只檢查入堡權、當下的將軍以及中間的格子是否空的，攻擊檢查待會再做
-					if(k==wK&&checkPieceCount==0) {
-						if((castlingState[depth]&cwQ)!=0&&position[1]==b0&&position[2]==b0&&position[3]==b0)
-							TML[l++]=((ulong)4)|((ulong)2<<taS)|((ulong)2<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)OOOMove<<miS)|len5;
-					} else if(k==bK&&checkPieceCount==0) {
-						if((castlingState[depth]&cbQ)!=0&&position[57]==b0&&position[58]==b0&&position[59]==b0)
-							TML[l++]=((ulong)60)|((ulong)58<<taS)|((ulong)58<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)OOOMove<<miS)|len5;
-					}
 
 					// 小兵棋步，只搜尋吃子升變跟吃過路兵
 
@@ -542,6 +533,15 @@ namespace Mushikui_Puzzle_Workshop {
 				}
 			}
 
+			// 入堡棋步，這邊只檢查入堡權、當下的將軍以及中間的格子是否空的，攻擊檢查待會再做
+			if(checkPieceCount==0) {
+				if(whoseMove==WT) {
+					if((castlingState[depth]&cwQ)!=0&&position[1]==b0&&position[2]==b0&&position[3]==b0) TML[l++]=wOOO;
+				} else {
+					if((castlingState[depth]&cbQ)!=0&&position[57]==b0&&position[58]==b0&&position[59]==b0) TML[l++]=bOOO;
+				}
+			}
+
 			// 殆合法棋步以及所有需要的資料都生成完畢，檢驗棋步的合法性、以及將軍對方與否
 			Array.Clear(DisambListLength, 0, 1024);
 			for(i=0, j=0;i<l;i++) {
@@ -564,13 +564,13 @@ namespace Mushikui_Puzzle_Workshop {
 			for(i=0;i<j;i++) {
 				ta=(byte)((moveList[depth, i]>>taS)&0x3F);
 				ot=(byte)((moveList[depth, i]>>otS)&0xF);
-				if(DisambListLength[ta, ot]<=1) continue;
+				if((l=DisambListLength[ta, ot])<=1) continue;
 				so=(byte)(moveList[depth, i]&0x3F); cx=0; cy=0;
-				for(l=0;l<DisambListLength[ta, ot];l++) {
-					if((DisambList[ta, ot, l]&7)==(so&7)) cx++;
-					if((DisambList[ta, ot, l]>>3)==(so>>3)) cy++;
+				for(k=0;k<l;k++) {
+					if((r=relDir[DisambList[ta, ot, k], so])==1) cx++;
+					if(r==0) cy++;
 				}
-				moveList[depth, i]|=((ulong)(cx==1?b1:(cy==1?b2:b3))<<dbS);
+				moveList[depth, i]|=((ulong)(cx==0?b1:(cy==0?b2:b3))<<dbS);
 			}
 		}
 
@@ -667,12 +667,12 @@ namespace Mushikui_Puzzle_Workshop {
 			}
 			result=slideRayRD[p, data=(int)(occuBS>>occuShiftBS[p]&0x3F)];
 			if((result&pPos)!=0) { checkPieceCount++; canStopCheck|=result; } else {
-				pData=slideHitLD[p, data]; p1=pData&0xFF; p2=pData>>8;
+				pData=slideHitRD[p, data]; p1=pData&0xFF; p2=pData>>8;
 				if((position[p2]==pB||position[p2]==pQ)&&position[p1]>>3==whoseMove) pinByOpp[p1]=true;
 			}
 			result=slideRayLU[p, data];
 			if((result&pPos)!=0) { checkPieceCount++; canStopCheck|=result; } else {
-				pData=slideHitLD[p, data]; p1=pData&0xFF; p2=pData>>8;
+				pData=slideHitLU[p, data]; p1=pData&0xFF; p2=pData>>8;
 				if((position[p2]==pB||position[p2]==pQ)&&position[p1]>>3==whoseMove) pinByOpp[p1]=true;
 			}
 
@@ -813,13 +813,13 @@ namespace Mushikui_Puzzle_Workshop {
 			for(i=0;i<j;i++) {
 				ta=(byte)((moveList[depth, i]>>taS)&0x3F);
 				ot=(byte)((moveList[depth, i]>>otS)&0xF);
-				if(DisambListLength[ta, ot]<=1) continue;
+				if((l=DisambListLength[ta, ot])<=1) continue;
 				so=(byte)(moveList[depth, i]&0x3F); cx=0; cy=0;
-				for(l=0;l<DisambListLength[ta, ot];l++) {
-					if((DisambList[ta, ot, l]&7)==(so&7)) cx++;
-					if((DisambList[ta, ot, l]>>3)==(so>>3)) cy++;
+				for(k=0;k<l;k++) {
+					if((r=relDir[DisambList[ta, ot, k], so])==1) cx++;
+					if(r==0) cy++;
 				}
-				moveList[depth, i]|=((ulong)(cx==1?b1:(cy==1?b2:b3))<<dbS);
+				moveList[depth, i]|=((ulong)(cx==0?b1:(cy==0?b2:b3))<<dbS);
 			}
 		}
 	}

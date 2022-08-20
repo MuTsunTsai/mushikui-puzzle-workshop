@@ -309,14 +309,16 @@ namespace Mushikui_Puzzle_Workshop {
 #if DEBUG
 				RMC[goal[I]>1?goal[I]:1]++;
 #endif
-				EN.play(J[I], goal[I+1]); I++; J[I]=0; branchSize[I]=1; hasSolution[I]=false;
+				EN.play(J[I]); I++; J[I]=0; branchSize[I]=1; hasSolution[I]=false;
 				if(I>2) {
 					if(transTable.LookUp(EN.positionData)) {
 						transCount++;
 						if(transTable.Value&&!foundSolution(true)) return false;
 						if(!transTable.Value) runRetract();
+						return true;
 					}
 				}
+				EN.postPlay(goal[I]);
 			}
 			return true;
 		}
@@ -420,13 +422,15 @@ namespace Mushikui_Puzzle_Workshop {
 					runRetract();
 				}
 			} else {
-				EN.play(J[I], goal[I+1]); I++; J[I]=0; branchSize[I]=1; hasSolution[I]=false;
+				EN.play(J[I]); I++; J[I]=0; branchSize[I]=1; hasSolution[I]=false;
 				if(I>2) {
 					if(transTable.LookUp(EN.positionData)) {
 						if(transTable.Value) { C++; return false; }	// 找到調換解，可以結束了。
 						if(!transTable.Value) runRetract();
+						return true;
 					}
 				}
+				EN.postPlay(goal[I]);
 			}
 			return true;
 		}

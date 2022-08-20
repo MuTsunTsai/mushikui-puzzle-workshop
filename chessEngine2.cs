@@ -13,13 +13,9 @@ namespace Mushikui_Puzzle_Workshop {
 		/////////////////////////////////
 
 		public void test() {
-			ulong a;
-			for(int i=0;i<1<<30;i++) a=(ulong)1<<(i%64);
 		}
 
 		public void test2() {
-			ulong a;
-			for(int i=0;i<1<<30;i++) a=mask[i%64];
 		}
 
 		/////////////////////////////////
@@ -57,6 +53,11 @@ namespace Mushikui_Puzzle_Workshop {
 		private const ulong len4=(ulong)4<<leS;
 		private const ulong len5=(ulong)5<<leS;
 		private const ulong len6=(ulong)6<<leS;
+
+		private const ulong wOO=((ulong)4)|((ulong)6<<taS)|((ulong)6<<deS)|((ulong)wK<<otS)|((ulong)wK<<ntS)|((ulong)OOMove<<miS)|len3;
+		private const ulong wOOO=((ulong)4)|((ulong)2<<taS)|((ulong)2<<deS)|((ulong)wK<<otS)|((ulong)wK<<ntS)|((ulong)OOOMove<<miS)|len5;
+		private const ulong bOO=((ulong)60)|((ulong)62<<taS)|((ulong)62<<deS)|((ulong)bK<<otS)|((ulong)bK<<ntS)|((ulong)OOMove<<miS)|len3;
+		private const ulong bOOO=((ulong)60)|((ulong)58<<taS)|((ulong)58<<deS)|((ulong)bK<<otS)|((ulong)bK<<ntS)|((ulong)OOOMove<<miS)|len5;
 
 		private int moveToLength(ulong m) {
 			byte tag=(byte)((m>>tgS)&0xF);
@@ -486,8 +487,7 @@ namespace Mushikui_Puzzle_Workshop {
 		// 行棋函數
 		/////////////////////////////////
 
-		public void play(int i) { play(i, 0);}		
-		public void play(int i, int len) {
+		public void play(int i) {
 			ulong m=moveList[depth, i];
 			moveHis[depth]=m;
 			byte so=(byte)(m&0x3F);
@@ -557,7 +557,10 @@ namespace Mushikui_Puzzle_Workshop {
 			if(ot==wP||ot==bP||cp!=0) halfmoveClock[depth]=b0; else halfmoveClock[depth]=(byte)(halfmoveClock[depth-1]+1);
 			whoseMove=(byte)(1-whoseMove);
 			if(whoseMove==WT) fullmoveClock++;
-			
+
+			positionDataReady=false;
+		}
+		public void postPlay(int len) {
 			if(len==2) computeLegalMoves2();
 			else if(len==3) computeLegalMoves3();
 			else if(len==4) computeLegalMoves4();
@@ -565,9 +568,7 @@ namespace Mushikui_Puzzle_Workshop {
 			else if(len==6) computeLegalMoves6();
 			else if(len==7) computeLegalMoves7();
 			else computeLegalMoves();
-			
-			positionDataReady=false;
-		}
+		}		
 		public void retract() {
 			if(depth==0) return;
 			ulong m=moveHis[depth-1];
