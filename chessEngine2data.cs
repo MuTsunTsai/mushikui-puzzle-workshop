@@ -8,7 +8,7 @@ using Microsoft.VisualBasic;
 namespace Mushikui_Puzzle_Workshop {
 	partial class chessEngine2 {
 
-		private static byte pieceIndex(char c) {
+		private static byte pieceCode(char c) {
 			switch(c) {
 				case 'P': return 1;
 				case 'N': return 2;				

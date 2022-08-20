@@ -34,6 +34,8 @@ namespace Mushikui_Puzzle_Workshop {
 			notifyIcon.Text=Text;
 
 			EN.load(chessEngine2.initFEN);
+			
+			EN.play(17); EN.retract();
 
 			//SW.Start();
 			//EN.test();
@@ -258,7 +260,7 @@ namespace Mushikui_Puzzle_Workshop {
 				initTransTable();	
 				goalLength=l;
 				if(goalLength>0) {
-					if(!EN.load(FEN)) {
+					if(!EN.load(FEN, goal[0])) {
 						MessageBox.Show("Inputed FEN is not a legal position: "+EN.errorText);
 						stopSearch();
 					}
@@ -376,7 +378,7 @@ namespace Mushikui_Puzzle_Workshop {
 					clearTransTable();
 					for(i=0;i<L.Count;i++) goal[i]=L[i]; goal[i]=0;
 					toolStripStatusLabel.Text=goalToStar();
-					EN.load(FEN);
+					EN.load(FEN, goal[0]);
 					I=0; C=0; J[0]=0; branchSize[0]=1; hasSolution[0]=false;
 					while(!STOP&&runMulSearch()) {
 						TOC+=EN.moveCount;

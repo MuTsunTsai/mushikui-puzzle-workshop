@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
 using Microsoft.VisualBasic;
 
 namespace Mushikui_Puzzle_Workshop {
@@ -173,6 +174,8 @@ namespace Mushikui_Puzzle_Workshop {
 		private ulong[]		piecePos	=new ulong[16];		// 每一種棋子的分佈情況（有若干空欄位，但管它的）
 		private byte[]		kingPos		=new byte[2];		// 國王位置
 		
+		private byte[,]		pieceList	=new byte[16,16];	// 各種棋子實際位置的列表，供快速查找
+		private int[]		pieceIndex	=new int[64];		// 提供各個棋子在 pieceList 當中的索引位置
 		private int[]		pieceCount	=new int[16];		// 各種棋子的計數器
 
 		private byte		whoseMove=WT;
@@ -255,7 +258,8 @@ namespace Mushikui_Puzzle_Workshop {
 		
 		public string errorText { get; private set;}
 		
-		public bool load(string FEN) {		// 載入指定的 FEN，傳回真偽值表示成功與否
+		public bool load(string FEN) { return load(FEN, 0);}
+		public bool load(string FEN, int len) {		// 載入指定的 FEN，傳回真偽值表示成功與否
 			depth=0;
 			fromFEN(FEN);
 #if DEBUG
@@ -263,7 +267,7 @@ namespace Mushikui_Puzzle_Workshop {
 			Array.Clear(totalMoveCount,0,8);
 #endif
 			if(checkBasicLegality()) {
-				computeLegalMoves();
+				postPlay(len);
 				return true;
 			} else {
 				moveListLength[depth]=0;
@@ -309,9 +313,10 @@ namespace Mushikui_Puzzle_Workshop {
 			for(i=0;i<8;i++) for(j=0;j<8;j++) {
 					c=ca[(7-j)*8+i];
 					if(c!=' ') {
-						position[i+j*8]=(byte)pieceIndex(c);
-						piecePos[pieceIndex(c)]|=mask[i+j*8];
-						pieceCount[pieceIndex(c)]++;
+						position[i+j*8]=(byte)pieceCode(c);
+						piecePos[pieceCode(c)]|=mask[i+j*8];
+						pieceList[pieceCode(c), pieceCount[pieceCode(c)]]=(byte)(i+j*8);
+						pieceIndex[i+j*8]=pieceCount[pieceCode(c)]++;
 						occuH|=mask[i+j*8];
 						occuV|=maskV[i+j*8];
 						occuFS|=maskFS[i+j*8];
@@ -497,9 +502,14 @@ namespace Mushikui_Puzzle_Workshop {
 			byte nt=(byte)((m>>ntS)&0xF);
 			byte cp=(byte)((m>>cpS)&0xF);
 			byte mi=(byte)((m>>miS)&0xF);
+			byte p;
 			
 			if(cp!=0) {
 				piecePos[cp]^=mask[de]; pieceCount[cp]--;
+				if(pieceIndex[de]!=pieceCount[cp]) {									// 如果被刪除的棋子本來就是 pieceList 中的最後一個那就不管了
+					pieceList[cp, pieceIndex[de]]=(p=pieceList[cp, pieceCount[cp]]);	// 否則更新 pieceList，把原本的最後一個移到被刪除的位置
+					pieceIndex[p]=pieceIndex[de];
+				}
 				if(mi==epMove) {
 					position[de]=b0;
 					occuH^=mask[de]; occuV^=maskV[de];
@@ -510,11 +520,22 @@ namespace Mushikui_Puzzle_Workshop {
 				occuH|=mask[ta]; occuV|=maskV[ta];
 				occuFS|=maskFS[ta]; occuBS|=maskBS[ta];
 			}
-			if(ot!=nt) { pieceCount[ot]--; pieceCount[nt]++;}
+			if(ot!=nt) {
+				pieceCount[ot]--;
+				if(pieceIndex[so]!=pieceCount[ot]) {									// 如果被刪除的棋子本來就是 pieceList 中的最後一個那就不管了
+					pieceList[ot, pieceIndex[so]]=(p=pieceList[ot, pieceCount[ot]]);	// 否則更新 pieceList，把原本的最後一個移到被刪除的位置
+					pieceIndex[p]=pieceIndex[so];
+				}
+				pieceList[nt, pieceCount[nt]]=ta;
+				pieceIndex[ta]=pieceCount[nt]++;
+			} else {
+				pieceList[ot, pieceIndex[so]]=ta;
+				pieceIndex[ta]=pieceIndex[so];
+			}
 			position[so]=b0; position[ta]=nt;
 			piecePos[ot]^=mask[so]; piecePos[nt]|=mask[ta];
 			occuH^=mask[so]; occuV^=maskV[so];
-			occuFS^=maskFS[so]; occuBS^=maskBS[so];			
+			occuFS^=maskFS[so]; occuBS^=maskBS[so];
 			
 			if(ot==wK||ot==bK) {
 				kingPos[ot>>3]=ta;
@@ -522,17 +543,21 @@ namespace Mushikui_Puzzle_Workshop {
 					if(ot==wK) {
 						position[7]=0; position[5]=wR; piecePos[wR]^=0xA0;
 						occuH^=0xA0; occuV^=0x100010000000000; occuFS^=0x10001; occuBS^=0x100010000000000;
+						pieceList[wR, pieceIndex[7]]=5; pieceIndex[5]=pieceIndex[7];
 					} else {
 						position[63]=0; position[61]=bR; piecePos[bR]^=0xA000000000000000;
 						occuH^=0xA000000000000000; occuV^=0x8000800000000000; occuFS^=0x8000000000008000; occuBS^=0x80008000000000;
+						pieceList[bR, pieceIndex[63]]=61; pieceIndex[61]=pieceIndex[63];
 					}
 				} else if(mi==OOOMove) {
 					if(ot==wK) {
 						position[0]=0; position[3]=wR; piecePos[wR]^=0x9;
 						occuH^=0x9; occuV^=0x1000001; occuFS^=0x100000100000000; occuBS^=0x1000001;
+						pieceList[wR, pieceIndex[0]]=3; pieceIndex[3]=pieceIndex[0];
 					} else {
 						position[56]=0; position[59]=bR; piecePos[bR]^=0x900000000000000;
 						occuH^=0x900000000000000; occuV^=0x80000080; occuFS^=0x80000080000000; occuBS^=0x8000000000800000;
+						pieceList[bR, pieceIndex[56]]=59; pieceIndex[59]=pieceIndex[56];
 					}
 				}
 			}
@@ -561,6 +586,9 @@ namespace Mushikui_Puzzle_Workshop {
 			positionDataReady=false;
 		}
 		public void postPlay(int len) {
+#if DEBUG
+			if(checkCount((byte)(1-whoseMove))!=0) Debugger.Break();
+#endif
 			if(len==2) computeLegalMoves2();
 			else if(len==3) computeLegalMoves3();
 			else if(len==4) computeLegalMoves4();
@@ -579,19 +607,35 @@ namespace Mushikui_Puzzle_Workshop {
 			byte nt=(byte)((m>>ntS)&0xF);
 			byte cp=(byte)((m>>cpS)&0xF);
 			byte mi=(byte)((m>>miS)&0xF);
+			byte p;
 
 			position[so]=ot;
 			piecePos[ot]|=mask[so]; piecePos[nt]^=mask[ta];
 			occuH|=mask[so]; occuV|=maskV[so];
 			occuFS|=maskFS[so]; occuBS|=maskBS[so];
+			if(ot!=nt) {
+				pieceCount[nt]--;
+				if(pieceIndex[ta]!=pieceCount[nt]) {									// 如果被刪除的棋子本來就是 pieceList 中的最後一個那就不管了
+					pieceList[nt, pieceIndex[ta]]=(p=pieceList[nt, pieceCount[nt]]);	// 否則更新 pieceList，把原本的最後一個移到被刪除的位置
+					pieceIndex[p]=pieceIndex[ta];
+				}
+				pieceList[ot, pieceCount[ot]]=so;
+				pieceIndex[so]=pieceCount[ot]++;
+			} else {
+				pieceList[ot, pieceIndex[ta]]=so;
+				pieceIndex[so]=pieceIndex[ta];
+			}
 
-			if(cp!=0) { position[de]=cp; piecePos[cp]|=mask[de]; pieceCount[cp]++;}
+			if(cp!=0) {
+				position[de]=cp; piecePos[cp]|=mask[de];
+				pieceList[cp, pieceCount[cp]]=de;
+				pieceIndex[de]=pieceCount[cp]++;
+			}
 			if(cp==0||mi==epMove) {
 				position[ta]=b0;
 				occuH^=mask[ta]; occuV^=maskV[ta];
 				occuFS^=maskFS[ta]; occuBS^=maskBS[ta];
 			}
-			if(ot!=nt) { pieceCount[nt]--; pieceCount[ot]++;}
 			
 			if(ot==wK||ot==bK) {
 				kingPos[ot>>3]=so;
@@ -599,17 +643,21 @@ namespace Mushikui_Puzzle_Workshop {
 					if(ot==wK) {
 						position[7]=wR; position[5]=0; piecePos[wR]^=0xA0;
 						occuH^=0xA0; occuV^=0x100010000000000; occuFS^=0x10001; occuBS^=0x100010000000000;
+						pieceList[wR, pieceIndex[5]]=7; pieceIndex[7]=pieceIndex[5];
 					} else {
 						position[63]=bR; position[61]=0; piecePos[bR]^=0xA000000000000000;
 						occuH^=0xA000000000000000; occuV^=0x8000800000000000; occuFS^=0x8000000000008000; occuBS^=0x80008000000000;
+						pieceList[bR, pieceIndex[61]]=63; pieceIndex[63]=pieceIndex[61];
 					}
 				} else if(mi==OOOMove) {
 					if(ot==wK) {
 						position[0]=wR; position[3]=0; piecePos[wR]^=0x9;
 						occuH^=0x9; occuV^=0x1000001; occuFS^=0x100000100000000; occuBS^=0x1000001;
+						pieceList[wR, pieceIndex[3]]=0; pieceIndex[0]=pieceIndex[3];
 					} else {
 						position[56]=bR; position[59]=0; piecePos[bR]^=0x900000000000000;
 						occuH^=0x900000000000000; occuV^=0x80000080; occuFS^=0x80000080000000; occuBS^=0x8000000000800000;
+						pieceList[bR, pieceIndex[59]]=56; pieceIndex[56]=pieceIndex[59];
 					}
 				}
 			}

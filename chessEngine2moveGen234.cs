@@ -20,8 +20,8 @@ namespace Mushikui_Puzzle_Workshop {
 		// 也不用處理消歧義清單
 
 		private void computeLegalMoves2() {
-			int j=0, pData;
-			byte k, p, r;			// 一些變數，可能會有混著亂用的情況，請多包涵
+			int i, j=0, pData;
+			byte so, ta, p;
 			int data, p1, p2;
 			ulong result, pPos, d;
 
@@ -112,52 +112,62 @@ namespace Mushikui_Puzzle_Workshop {
 			result=slideRayD[p, data];
 			if((result&pPos)!=0) { checkPieceCount++; canStopCheck|=result; }
 
-			// 大部分的資料生成完畢，接著生成合法棋步（直接判斷完畢，沒有殆合法棋步的過程）
+			// 資料生成完畢，接著生成合法棋步（直接判斷完畢，沒有殆合法棋步的過程）
 
-			if(checkPieceCount==2) { moveListLength[depth]=0; return;} // 雙將軍的情況就不用繼續了，不可能走兵
+			if(checkPieceCount==2) { moveListLength[depth]=0; return; } // 雙將軍的情況就不用繼續了，不可能走兵
 
 			d=((ulong)oP<<otS)|((ulong)oP<<ntS)|len2|0x10000000000;
 
 			if(checkPieceCount==1) {	// 如果正面臨將軍，需要多判斷能不能阻擋將軍
-				for(p=0;p<64;p++) {
-					if((k=position[p])==oP&&!pinByOpp[p]&&!pinBySelf[p]) {	// 不能被釘住、也不能做閃擊是兩碼的必要條件
-
-						// 只搜尋小兵的直走棋步就好
-						if(k==wP) {
-							if(position[r=(byte)(p+8)]==b0&&(p>>3)!=6) {
-								if((canStopCheck&mask[r])!=0) moveList[depth, j++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|d;
-								if((p>>3)==1&&position[r=(byte)(p+16)]==b0&&(canStopCheck&mask[r])!=0) moveList[depth, j++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|d;
+				if(whoseMove==WT) {
+					for(i=0;i<pieceCount[wP];i++) {
+						so=pieceList[wP, i]; if(!pinByOpp[so]&&!pinBySelf[so]) {	// 不能被釘住、也不能做閃擊是兩碼的必要條件
+							if(position[ta=(byte)(so+8)]==b0) {
+								if((so>>3)!=6) {
+									if((canStopCheck&mask[ta])!=0) moveList[depth, j++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|d;
+									if((so>>3)==1&&position[ta=(byte)(so+16)]==b0&&(canStopCheck&mask[ta])!=0) moveList[depth, j++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|d;
+								}
 							}
-						} else if(k==bP) {
-							if(position[r=(byte)(p-8)]==b0&&(p>>3)!=1) {
-								if((canStopCheck&mask[r])!=0) moveList[depth, j++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|d;
-								if((p>>3)==6&&position[r=(byte)(p-16)]==b0&&(canStopCheck&mask[r])!=0) moveList[depth, j++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|d;
+						}
+					}
+				} else {
+					for(i=0;i<pieceCount[bP];i++) {
+						so=pieceList[bP, i]; if(!pinByOpp[so]&&!pinBySelf[so]) {
+							if(position[ta=(byte)(so-8)]==b0) {
+								if((so>>3)!=1) {
+									if((canStopCheck&mask[ta])!=0) moveList[depth, j++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|d;
+									if((so>>3)==6&&position[ta=(byte)(so-16)]==b0&&(canStopCheck&mask[ta])!=0) moveList[depth, j++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|d;
+								}
+							}
+						}
+					}
+				}
+			} else {
+				if(whoseMove==WT) {
+					for(i=0;i<pieceCount[wP];i++) {
+						so=pieceList[wP, i]; if(!pinByOpp[so]&&!pinBySelf[so]) {
+							if(position[ta=(byte)(so+8)]==b0) {
+								if((so>>3)!=6) {
+									moveList[depth, j++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|d;
+									if((so>>3)==1&&position[ta=(byte)(so+16)]==b0) moveList[depth, j++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|d;
+								}
+							}
+						}
+					}
+				} else {
+					for(i=0;i<pieceCount[bP];i++) {
+						so=pieceList[bP, i]; if(!pinByOpp[so]&&!pinBySelf[so]) {
+							if(position[ta=(byte)(so-8)]==b0) {
+								if((so>>3)!=1) {
+									moveList[depth, j++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|d;
+									if((so>>3)==6&&position[ta=(byte)(so-16)]==b0) moveList[depth, j++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|d;
+								}
 							}
 						}
 					}
 				}
 			}
 			
-			else {	// 如果沒有將軍的話就做基本的判斷就好
-				for(p=0;p<64;p++) {
-					if((k=position[p])==oP&&!pinByOpp[p]&&!pinBySelf[p]) {	// 不能被釘住、也不能做閃擊是兩碼的必要條件
-
-						// 只搜尋小兵的直走棋步就好
-						if(k==wP) {
-							if(position[r=(byte)(p+8)]==b0&&(p>>3)!=6) {
-								moveList[depth, j++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|d;
-								if((p>>3)==1&&position[r=(byte)(p+16)]==b0) moveList[depth, j++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|d;
-							}
-						} else if(k==bP) {
-							if(position[r=(byte)(p-8)]==b0&&(p>>3)!=1) {
-								moveList[depth, j++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|d;
-								if((p>>3)==6&&position[r=(byte)(p-16)]==b0) moveList[depth, j++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|d;
-							}
-						}
-					}
-				}
-			}
-
 			moveListLength[depth]=(byte)j;
 #if DEBUG
 			pseudoMoveCount[2]+=j;
@@ -173,19 +183,19 @@ namespace Mushikui_Puzzle_Workshop {
 		// 不用管一次閃兩子的橫向閃擊問題
 
 		private void computeLegalMoves3() {
-			int i, j=0, l=0, pData;
-			byte k, p, d, r;			// 一些變數，可能會有混著亂用的情況，請多包涵
-			byte tag, so, ta, ot;
-			int data, p1, p2;
+			int i, j, k, l=0, pData;
+			byte p, r;
+			byte tag, so, ta, ot, cp;
+			int data, p1, p2, p3;
 			ulong result, pPos;
 			int cx, cy;
 
 			// 設置代碼
-			if(whoseMove==WT) { oP=wP; oR=wR; oN=wN; oB=wB; oQ=wQ; oK=wK; pP=bP; pR=bR; pN=bN; pB=bB; pQ=bQ; pK=bK; }
-			else { oP=bP; oR=bR; oN=bN; oB=bB; oQ=bQ; oK=bK; pP=wP; pR=wR; pN=wN; pB=wB; pQ=wQ; pK=wK; }
+			if(whoseMove==WT) { oP=wP; oR=wR; oN=wN; oB=wB; oQ=wQ; oK=wK; pP=bP; pR=bR; pN=bN; pB=bB; pQ=bQ; pK=bK;}
+			else { oP=bP; oR=bR; oN=bN; oB=bB; oQ=bQ; oK=bK; pP=wP; pR=wR; pN=wN; pB=wB; pQ=wQ; pK=wK;}
 
 			// 資料歸零
-			attackByOpp=canStopCheck=0;
+			canStopCheck=0;
 			checkPieceCount=0;
 			dblDis=dblPin=false;
 			Array.Clear(canAttackOppKing, 0, 16);
@@ -218,11 +228,11 @@ namespace Mushikui_Puzzle_Workshop {
 			// 右左
 			result=slideRayR[p, data=(int)(occuH>>occuShiftH[p]&0x3F)];
 			canAttackOppKing[oR]|=result; canAttackOppKing[oQ]|=result;
-			pData=slideHitR[p, data]; p1=pData&0xFF; p2=(pData>>8)&0xFF;
+			pData=slideHitR[p, data]; p1=pData&0xFF; p2=(pData>>8)&0xFF; p3=pData>>16;
 			if((position[p2]==oR||position[p2]==oQ)&&position[p1]>>3==whoseMove) pinBySelf[p1]=true;
 			result=slideRayL[p, data];
 			canAttackOppKing[oR]|=result; canAttackOppKing[oQ]|=result;
-			pData=slideHitL[p, data]; p1=pData&0xFF; p2=(pData>>8)&0xFF;
+			pData=slideHitL[p, data]; p1=pData&0xFF; p2=(pData>>8)&0xFF; p3=pData>>16;
 			if((position[p2]==oR||position[p2]==oQ)&&position[p1]>>3==whoseMove) pinBySelf[p1]=true;
 
 			// 上下
@@ -238,7 +248,7 @@ namespace Mushikui_Puzzle_Workshop {
 			// 處理我方國王
 			p=kingPos[whoseMove];
 			if((result=((whoseMove==WT?pieceRangeWP[p]:pieceRangeBP[p])&piecePos[pP]))!=0)
-				{ checkPieceCount++; canStopCheck|=result; }													// 由於合法性檢查已經排除了雙兵將跟雙騎士將
+				{ checkPieceCount++; canStopCheck|=result;}														// 由於合法性檢查已經排除了雙兵將跟雙騎士將
 			if((result=(pieceRangeN[p]&piecePos[pN]))!=0) { checkPieceCount++; canStopCheck|=result; }			// 所以這邊這兩種都只要算一次即可
 
 			// 斜向
@@ -268,12 +278,12 @@ namespace Mushikui_Puzzle_Workshop {
 			pPos=piecePos[pR]|piecePos[pQ];
 			result=slideRayR[p, data=(int)(occuH>>occuShiftH[p]&0x3F)];
 			if((result&pPos)!=0) { checkPieceCount++; canStopCheck|=result; } else {
-				pData=slideHitR[p, data]; p1=pData&0xFF; p2=(pData>>8)&0xFF;
+				pData=slideHitR[p, data]; p1=pData&0xFF; p2=(pData>>8)&0xFF; p3=pData>>16;
 				if((position[p2]==pR||position[p2]==pQ)&&position[p1]>>3==whoseMove) pinByOpp[p1]=true;
 			}
 			result=slideRayL[p, data];
 			if((result&pPos)!=0) { checkPieceCount++; canStopCheck|=result; } else {
-				pData=slideHitL[p, data]; p1=pData&0xFF; p2=(pData>>8)&0xFF;
+				pData=slideHitL[p, data]; p1=pData&0xFF; p2=(pData>>8)&0xFF; p3=pData>>16;
 				if((position[p2]==pR||position[p2]==pQ)&&position[p1]>>3==whoseMove) pinByOpp[p1]=true;
 			}
 
@@ -289,64 +299,77 @@ namespace Mushikui_Puzzle_Workshop {
 				if((position[p2]==pR||position[p2]==pQ)&&position[p1]>>3==whoseMove) pinByOpp[p1]=true;
 			}
 
-			// 大部分的資料生成完畢，接著一邊生成殆合法棋步、一邊生成最後的 attackByOpp 資料
+			// 生成 attackByOpp 資料
+			attackByOpp=pieceRangeK[kingPos[1-whoseMove]];
+			for(i=0;i<pieceCount[pP];i++) attackByOpp|=(whoseMove==BC?pieceRangeWP[pieceList[pP, i]]:pieceRangeBP[pieceList[pP, i]]);
+			for(i=0;i<pieceCount[pN];i++) attackByOpp|=pieceRangeN[pieceList[pN, i]];
+			for(i=0;i<pieceCount[pR];i++) attackByOpp|=slideRangeH[p=pieceList[pR, i], (occuH^mask[kingPos[whoseMove]])>>occuShiftH[p]&0x3F]|
+				slideRangeV[p, (occuV^maskV[kingPos[whoseMove]])>>occuShiftV[p]&0x3F];
+			for(i=0;i<pieceCount[pB];i++) attackByOpp|=slideRangeFS[p=pieceList[pB, i], (occuFS^maskFS[kingPos[whoseMove]])>>occuShiftFS[p]&0x3F]|
+				slideRangeBS[p, (occuBS^maskBS[kingPos[whoseMove]])>>occuShiftBS[p]&0x3F];
+			for(i=0;i<pieceCount[pQ];i++) attackByOpp|=slideRangeH[p=pieceList[pQ, i], (occuH^mask[kingPos[whoseMove]])>>occuShiftH[p]&0x3F]|
+				slideRangeV[p, (occuV^maskV[kingPos[whoseMove]])>>occuShiftV[p]&0x3F]|slideRangeFS[p, (occuFS^maskFS[kingPos[whoseMove]])>>occuShiftFS[p]&0x3F]|
+				slideRangeBS[p, (occuBS^maskBS[kingPos[whoseMove]])>>occuShiftBS[p]&0x3F];
 
-			for(p=0;p<64;p++) {
-				k=position[p];
-				if(k==b0) continue;
-				if((k>>3)==whoseMove) {
+			// 資料生成完畢，生成殆合法棋步
 
-					// 只搜尋小兵的直走棋步就好
-
-					if(k==wP) {
-						if(position[r=(byte)(p+8)]==b0&&(p>>3)!=6) {
-							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len2;
-							if((p>>3)==1&&position[r=(byte)(p+16)]==b0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len2;
-						}
-					} else if(k==bP) {
-						if(position[r=(byte)(p-8)]==b0&&(p>>3)!=1) {
-							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len2;
-							if((p>>3)==6&&position[r=(byte)(p-16)]==b0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len2;
-						}
-					}
-
-
-					// 普通棋步（含國王的），不用管吃子
-					else {
-						if(k==oN) {
-							for(i=0;(r=pieceRuleN[p, i])!=NS;i++)
-								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
-						} else if(k==oK) {
-							for(i=0;(r=pieceRuleK[p, i])!=NS;i++)
-								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
-						} else {
-							if((k&b1)==b1)
-								for(i=0;HVRule[p, i, 0]!=NS;i++) for(j=0;(r=HVRule[p, i, j])!=NS;j++) {
-									if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
-									else break;
-								}
-							if((k&b2)==b2)
-								for(i=0;DIRule[p, i, 0]!=NS;i++) for(j=0;(r=DIRule[p, i, j])!=NS;j++) {
-									if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
-									else break;
-								}
-						}
+			// 小兵，只搜尋直走
+			if(whoseMove==WT) {
+				for(i=0;i<pieceCount[wP];i++) {
+					so=pieceList[wP, i];
+					if(position[ta=(byte)(so+8)]==b0&&(so>>3)!=6) {
+						TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)wP<<otS)|((ulong)wP<<ntS)|len2;
+						if((so>>3)==1&&position[ta=(byte)(so+16)]==b0) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)wP<<otS)|((ulong)wP<<ntS)|len2;
 					}
 				}
-
-				// 如果是敵方的棋子，生成 attackByOpp 資料
-				else {
-					if(k==pP) attackByOpp|=(k==wP?pieceRangeWP[p]:pieceRangeBP[p]);
-					else if(k==pN) attackByOpp|=pieceRangeN[p];
-					else if(k==pK) attackByOpp|=pieceRangeK[p];
-					else {
-						// 這邊記得要想像我方的國王不存在，免得待會國王往反方向閃
-						if((k&b1)==b1) attackByOpp|=slideRangeH[p, (occuH^mask[kingPos[whoseMove]])>>occuShiftH[p]&0x3F]|
-							slideRangeV[p, (occuV^maskV[kingPos[whoseMove]])>>occuShiftV[p]&0x3F];
-						if((k&b2)==b2) attackByOpp|=slideRangeFS[p, (occuFS^maskFS[kingPos[whoseMove]])>>occuShiftFS[p]&0x3F]|
-							slideRangeBS[p, (occuBS^maskBS[kingPos[whoseMove]])>>occuShiftBS[p]&0x3F];
-					}
+			} else {
+				for(i=0;i<pieceCount[bP];i++) {
+					so=pieceList[bP, i];
+					if(position[ta=(byte)(so-8)]==b0&&(so>>3)!=1) {
+						TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)bP<<otS)|((ulong)bP<<ntS)|len2;
+						if((so>>3)==6&&position[ta=(byte)(so-16)]==b0) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)bP<<otS)|((ulong)bP<<ntS)|len2;
+					}					
 				}
+			}
+
+			// 騎士棋步
+			for(i=0;i<pieceCount[oN];i++)
+				if(!pinByOpp[so=pieceList[oN, i]])	// 騎士只要被釘住就不能動
+					for(j=0;(ta=pieceRuleN[so, j])!=NS;j++)
+						if((cp=position[ta])==0) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)oN<<otS)|((ulong)oN<<ntS)|len3;
+
+			// 國王棋步（普通的）
+			for(j=0;(ta=pieceRuleK[so=kingPos[whoseMove], j])!=NS;j++)
+				if((cp=position[ta])==0) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)oK<<otS)|((ulong)oK<<ntS)|len3;
+
+			// 城堡棋步
+			for(i=0;i<pieceCount[oR];i++)
+				for(j=0;HVRule[so=pieceList[oR, i], j, 0]!=NS;j++)
+					for(k=0;(ta=HVRule[so, j, k])!=NS;k++) {
+						if((cp=position[ta])==0) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)oR<<otS)|((ulong)oR<<ntS)|len3;
+						else break;
+					}
+
+			// 主教棋步
+			for(i=0;i<pieceCount[oB];i++)
+				for(j=0;DIRule[so=pieceList[oB, i], j, 0]!=NS;j++)
+					for(k=0;(ta=DIRule[so, j, k])!=NS;k++) {
+						if((cp=position[ta])==0) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)oB<<otS)|((ulong)oB<<ntS)|len3;
+						else break;
+					}
+
+			// 皇后棋步
+			for(i=0;i<pieceCount[oQ];i++) {
+				for(j=0;HVRule[so=pieceList[oQ, i], j, 0]!=NS;j++)
+					for(k=0;(ta=HVRule[so, j, k])!=NS;k++) {
+						if((cp=position[ta])==0) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)oQ<<otS)|((ulong)oQ<<ntS)|len3;
+						else break;
+					}
+				for(j=0;DIRule[so=pieceList[oQ, i], j, 0]!=NS;j++)
+					for(k=0;(ta=DIRule[so, j, k])!=NS;k++) {
+						if((cp=position[ta])==0) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)oQ<<otS)|((ulong)oQ<<ntS)|len3;
+						else break;
+					}
 			}
 
 			// 入堡棋步，這邊只檢查入堡權、當下的將軍以及中間的格子是否空的，攻擊檢查待會再做
@@ -357,7 +380,6 @@ namespace Mushikui_Puzzle_Workshop {
 					if((castlingState[depth]&cbK)!=0&&position[61]==b0&&position[62]==b0) TML[l++]=bOO;
 				}
 			}
-
 
 			// 殆合法棋步以及所有需要的資料都生成完畢，檢驗棋步的合法性、以及將軍對方與否
 			Array.Clear(DisambListLength, 0, 1024);
@@ -408,7 +430,7 @@ namespace Mushikui_Puzzle_Workshop {
 			if(checkPieceCount==0) {
 				// 如果不是國王（佔大多數），那只要檢查是否移動的棋子被釘住即可
 				if(ot!=oK) {
-					if(pinByOpp[so]&&(ot==oN||relDir[so, ta]!=relDir[so, kingPos[whoseMove]])) return 0;
+					if(pinByOpp[so]&&relDir[so, ta]!=relDir[so, kingPos[whoseMove]]) return 0;
 				}
 					// 如果是國王
 				else if(mi==OOMove&&(attackByOpp&mask[so+1])!=0) return 0;							// 檢查王側入堡的路上一格有沒有被攻擊
@@ -420,7 +442,7 @@ namespace Mushikui_Puzzle_Workshop {
 			else if(checkPieceCount==1) {
 				if(ot!=oK) {
 					if((canStopCheck&mask[ta])==0||pinByOpp[so]&&
-						(ot==oN||relDir[so, ta]!=relDir[so, kingPos[whoseMove]])) return 0;			// 如果是一般棋子，那必須阻止對方的將軍，但那個棋子不能被釘住
+						relDir[so, ta]!=relDir[so, kingPos[whoseMove]]) return 0;					// 如果是一般棋子，那必須阻止對方的將軍，但那個棋子不能被釘住（騎士已經排除）
 				} else if((attackByOpp&mask[ta])!=0) return 0;										// 如果動的是國王，必須閃到安全地帶（入堡在生成殆合法棋步時已經排除）
 			}
 
@@ -452,19 +474,19 @@ namespace Mushikui_Puzzle_Workshop {
 		// 不用管一次閃兩子的橫向閃擊問題
 
 		private void computeLegalMoves4() {
-			int i, j=0, l=0, pData;
-			byte k, p, d, r;			// 一些變數，可能會有混著亂用的情況，請多包涵
-			byte tag, so, ta, ot;
-			int data, p1, p2;
+			int i, j, k, l=0, pData;
+			byte p, r;
+			byte tag, so, ta, ot, cp;
+			int data, p1, p2, p3;
 			ulong result, pPos;
 			int cx, cy;
 
 			// 設置代碼
-			if(whoseMove==WT) { oP=wP; oR=wR; oN=wN; oB=wB; oQ=wQ; oK=wK; pP=bP; pR=bR; pN=bN; pB=bB; pQ=bQ; pK=bK; }//
-			else { oP=bP; oR=bR; oN=bN; oB=bB; oQ=bQ; oK=bK; pP=wP; pR=wR; pN=wN; pB=wB; pQ=wQ; pK=wK; }
+			if(whoseMove==WT) { oP=wP; oR=wR; oN=wN; oB=wB; oQ=wQ; oK=wK; pP=bP; pR=bR; pN=bN; pB=bB; pQ=bQ; pK=bK;}
+			else { oP=bP; oR=bR; oN=bN; oB=bB; oQ=bQ; oK=bK; pP=wP; pR=wR; pN=wN; pB=wB; pQ=wQ; pK=wK;}
 
 			// 資料歸零
-			attackByOpp=canStopCheck=0;
+			canStopCheck=0;
 			checkPieceCount=0;
 			dblDis=dblPin=false;
 			Array.Clear(canAttackOppKing, 0, 16);
@@ -497,11 +519,11 @@ namespace Mushikui_Puzzle_Workshop {
 			// 右左
 			result=slideRayR[p, data=(int)(occuH>>occuShiftH[p]&0x3F)];
 			canAttackOppKing[oR]|=result; canAttackOppKing[oQ]|=result;
-			pData=slideHitR[p, data]; p1=pData&0xFF; p2=(pData>>8)&0xFF;
+			pData=slideHitR[p, data]; p1=pData&0xFF; p2=(pData>>8)&0xFF; p3=pData>>16;
 			if((position[p2]==oR||position[p2]==oQ)&&position[p1]>>3==whoseMove) pinBySelf[p1]=true;
 			result=slideRayL[p, data];
 			canAttackOppKing[oR]|=result; canAttackOppKing[oQ]|=result;
-			pData=slideHitL[p, data]; p1=pData&0xFF; p2=(pData>>8)&0xFF;
+			pData=slideHitL[p, data]; p1=pData&0xFF; p2=(pData>>8)&0xFF; p3=pData>>16;
 			if((position[p2]==oR||position[p2]==oQ)&&position[p1]>>3==whoseMove) pinBySelf[p1]=true;
 
 			// 上下
@@ -517,7 +539,7 @@ namespace Mushikui_Puzzle_Workshop {
 			// 處理我方國王
 			p=kingPos[whoseMove];
 			if((result=((whoseMove==WT?pieceRangeWP[p]:pieceRangeBP[p])&piecePos[pP]))!=0)
-				{ checkPieceCount++; canStopCheck|=result; }													// 由於合法性檢查已經排除了雙兵將跟雙騎士將
+				{ checkPieceCount++; canStopCheck|=result;}														// 由於合法性檢查已經排除了雙兵將跟雙騎士將
 			if((result=(pieceRangeN[p]&piecePos[pN]))!=0) { checkPieceCount++; canStopCheck|=result; }			// 所以這邊這兩種都只要算一次即可
 
 			// 斜向
@@ -547,12 +569,12 @@ namespace Mushikui_Puzzle_Workshop {
 			pPos=piecePos[pR]|piecePos[pQ];
 			result=slideRayR[p, data=(int)(occuH>>occuShiftH[p]&0x3F)];
 			if((result&pPos)!=0) { checkPieceCount++; canStopCheck|=result; } else {
-				pData=slideHitR[p, data]; p1=pData&0xFF; p2=(pData>>8)&0xFF;
+				pData=slideHitR[p, data]; p1=pData&0xFF; p2=(pData>>8)&0xFF; p3=pData>>16;
 				if((position[p2]==pR||position[p2]==pQ)&&position[p1]>>3==whoseMove) pinByOpp[p1]=true;
 			}
 			result=slideRayL[p, data];
 			if((result&pPos)!=0) { checkPieceCount++; canStopCheck|=result; } else {
-				pData=slideHitL[p, data]; p1=pData&0xFF; p2=(pData>>8)&0xFF;
+				pData=slideHitL[p, data]; p1=pData&0xFF; p2=(pData>>8)&0xFF; p3=pData>>16;
 				if((position[p2]==pR||position[p2]==pQ)&&position[p1]>>3==whoseMove) pinByOpp[p1]=true;
 			}
 
@@ -568,84 +590,97 @@ namespace Mushikui_Puzzle_Workshop {
 				if((position[p2]==pR||position[p2]==pQ)&&position[p1]>>3==whoseMove) pinByOpp[p1]=true;
 			}
 
-			// 大部分的資料生成完畢，接著一邊生成殆合法棋步、一邊生成最後的 attackByOpp 資料
+			// 生成 attackByOpp 資料
+			attackByOpp=pieceRangeK[kingPos[1-whoseMove]];
+			for(i=0;i<pieceCount[pP];i++) attackByOpp|=(whoseMove==BC?pieceRangeWP[pieceList[pP, i]]:pieceRangeBP[pieceList[pP, i]]);
+			for(i=0;i<pieceCount[pN];i++) attackByOpp|=pieceRangeN[pieceList[pN, i]];
+			for(i=0;i<pieceCount[pR];i++) attackByOpp|=slideRangeH[p=pieceList[pR, i], (occuH^mask[kingPos[whoseMove]])>>occuShiftH[p]&0x3F]|
+				slideRangeV[p, (occuV^maskV[kingPos[whoseMove]])>>occuShiftV[p]&0x3F];
+			for(i=0;i<pieceCount[pB];i++) attackByOpp|=slideRangeFS[p=pieceList[pB, i], (occuFS^maskFS[kingPos[whoseMove]])>>occuShiftFS[p]&0x3F]|
+				slideRangeBS[p, (occuBS^maskBS[kingPos[whoseMove]])>>occuShiftBS[p]&0x3F];
+			for(i=0;i<pieceCount[pQ];i++) attackByOpp|=slideRangeH[p=pieceList[pQ, i], (occuH^mask[kingPos[whoseMove]])>>occuShiftH[p]&0x3F]|
+				slideRangeV[p, (occuV^maskV[kingPos[whoseMove]])>>occuShiftV[p]&0x3F]|slideRangeFS[p, (occuFS^maskFS[kingPos[whoseMove]])>>occuShiftFS[p]&0x3F]|
+				slideRangeBS[p, (occuBS^maskBS[kingPos[whoseMove]])>>occuShiftBS[p]&0x3F];
 
-			for(p=0;p<64;p++) {
-				k=position[p];
-				if(k==b0) continue;
-				if((k>>3)==whoseMove) {
+			// 資料生成完畢，生成殆合法棋步
 
-					// 小兵棋步，只搜尋直走升變跟單純吃子兩種
-
-					if(k==wP) {
-						if(position[r=(byte)(p+8)]==b0&&(p>>3)==6) {
-							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wN<<ntS)|len4;
-							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wR<<ntS)|len4;
-							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wB<<ntS)|len4;
-							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)wQ<<ntS)|len4;
-						}
-						if((r=pieceRuleWP[p, 0])!=NS) {
-							if(side(d=position[r])==BC) {
-								if((p>>3)!=6) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
-							}
-							if((r=pieceRuleWP[p, 1])!=NS&&side(d=position[r])==BC&&(p>>3)!=6)
-								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
-						}
-					} else if(k==bP) {
-						if(position[r=(byte)(p-8)]==b0&&(p>>3)==1) {
-							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bN<<ntS)|len4;
-							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bR<<ntS)|len4;
-							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bB<<ntS)|len4;
-							TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)bQ<<ntS)|len4;
-						}
-						if((r=pieceRuleBP[p, 0])!=NS) {
-							if(side(d=position[r])==WT) {
-								if((p>>3)!=1) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
-							}
-							if((r=pieceRuleBP[p, 1])!=NS&&side(d=position[r])==WT&&(p>>3)!=1)
-								TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
+			// 小兵
+			if(whoseMove==WT) {
+				for(i=0;i<pieceCount[wP];i++) {
+					so=pieceList[wP, i];
+					if(position[ta=(byte)(so+8)]==b0) {
+						if((so>>3)==6) {
+							TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)wP<<otS)|((ulong)wN<<ntS)|len4;
+							TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)wP<<otS)|((ulong)wR<<ntS)|len4;
+							TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)wP<<otS)|((ulong)wB<<ntS)|len4;
+							TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)wP<<otS)|((ulong)wQ<<ntS)|len4;
 						}
 					}
-
-
-					// 普通棋步（含國王的）
-					else {
-						if(k==oN) {
-							for(i=0;(r=pieceRuleN[p, i])!=NS;i++)
-								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
-								else if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
-						} else if(k==oK) {
-							for(i=0;(r=pieceRuleK[p, i])!=NS;i++)
-								if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
-								else if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4;
-						} else {
-							if((k&b1)==b1)
-								for(i=0;HVRule[p, i, 0]!=NS;i++) for(j=0;(r=HVRule[p, i, j])!=NS;j++) {
-									if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
-									else { if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4; break; }
-								}
-							if((k&b2)==b2)
-								for(i=0;DIRule[p, i, 0]!=NS;i++) for(j=0;(r=DIRule[p, i, j])!=NS;j++) {
-									if((d=position[r])==0) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|len3;
-									else { if(d>>3!=whoseMove) TML[l++]=((ulong)p)|((ulong)r<<taS)|((ulong)r<<deS)|((ulong)k<<otS)|((ulong)k<<ntS)|((ulong)d<<cpS)|len4; break; }
-								}
-						}
+					if((ta=pieceRuleWP[so, 0])!=NS) {
+						if(side(cp=position[ta])==BC&&(so>>3)!=6) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)wP<<otS)|((ulong)wP<<ntS)|((ulong)cp<<cpS)|len4;
+						if((ta=pieceRuleWP[so, 1])!=NS&&side(cp=position[ta])==BC&&(so>>3)!=6)
+							TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)wP<<otS)|((ulong)wP<<ntS)|((ulong)cp<<cpS)|len4;
 					}
 				}
-
-				// 如果是敵方的棋子，生成 attackByOpp 資料
-				else {
-					if(k==pP) attackByOpp|=(k==wP?pieceRangeWP[p]:pieceRangeBP[p]);
-					else if(k==pN) attackByOpp|=pieceRangeN[p];
-					else if(k==pK) attackByOpp|=pieceRangeK[p];
-					else {
-						// 這邊記得要想像我方的國王不存在，免得待會國王往反方向閃
-						if((k&b1)==b1) attackByOpp|=slideRangeH[p, (occuH^mask[kingPos[whoseMove]])>>occuShiftH[p]&0x3F]|
-							slideRangeV[p, (occuV^maskV[kingPos[whoseMove]])>>occuShiftV[p]&0x3F];
-						if((k&b2)==b2) attackByOpp|=slideRangeFS[p, (occuFS^maskFS[kingPos[whoseMove]])>>occuShiftFS[p]&0x3F]|
-							slideRangeBS[p, (occuBS^maskBS[kingPos[whoseMove]])>>occuShiftBS[p]&0x3F];
+			} else {
+				for(i=0;i<pieceCount[bP];i++) {
+					so=pieceList[bP, i];
+					if(position[ta=(byte)(so-8)]==b0) {
+						if((so>>3)==1) {
+							TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)bP<<otS)|((ulong)bN<<ntS)|len4;
+							TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)bP<<otS)|((ulong)bR<<ntS)|len4;
+							TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)bP<<otS)|((ulong)bB<<ntS)|len4;
+							TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)bP<<otS)|((ulong)bQ<<ntS)|len4;
+						}
+					}
+					if((ta=pieceRuleBP[so, 0])!=NS) {
+						if(side(cp=position[ta])==WT&&(so>>3)!=1) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)bP<<otS)|((ulong)bP<<ntS)|((ulong)cp<<cpS)|len4;
+						if((ta=pieceRuleBP[so, 1])!=NS&&side(cp=position[ta])==WT&&(so>>3)!=1)
+							TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)bP<<otS)|((ulong)bP<<ntS)|((ulong)cp<<cpS)|len4;
 					}
 				}
+			}
+
+			// 騎士棋步
+			for(i=0;i<pieceCount[oN];i++)
+				if(!pinByOpp[so=pieceList[oN, i]])	// 騎士只要被釘住就不能動
+					for(j=0;(ta=pieceRuleN[so, j])!=NS;j++)
+						if((cp=position[ta])==0) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)oN<<otS)|((ulong)oN<<ntS)|len3;
+						else if(cp>>3!=whoseMove) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)oN<<otS)|((ulong)oN<<ntS)|((ulong)cp<<cpS)|len4;
+
+			// 國王棋步（普通的）
+			for(j=0;(ta=pieceRuleK[so=kingPos[whoseMove], j])!=NS;j++)
+				if((cp=position[ta])==0) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)oK<<otS)|((ulong)oK<<ntS)|len3;
+				else if(cp>>3!=whoseMove) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)oK<<otS)|((ulong)oK<<ntS)|((ulong)cp<<cpS)|len4;
+
+			// 城堡棋步
+			for(i=0;i<pieceCount[oR];i++)
+				for(j=0;HVRule[so=pieceList[oR, i], j, 0]!=NS;j++)
+					for(k=0;(ta=HVRule[so, j, k])!=NS;k++) {
+						if((cp=position[ta])==0) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)oR<<otS)|((ulong)oR<<ntS)|len3;
+						else { if(cp>>3!=whoseMove) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)oR<<otS)|((ulong)oR<<ntS)|((ulong)cp<<cpS)|len4; break; }
+					}
+
+			// 主教棋步
+			for(i=0;i<pieceCount[oB];i++)
+				for(j=0;DIRule[so=pieceList[oB, i], j, 0]!=NS;j++)
+					for(k=0;(ta=DIRule[so, j, k])!=NS;k++) {
+						if((cp=position[ta])==0) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)oB<<otS)|((ulong)oB<<ntS)|len3;
+						else { if(cp>>3!=whoseMove) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)oB<<otS)|((ulong)oB<<ntS)|((ulong)cp<<cpS)|len4; break; }
+					}
+
+			// 皇后棋步
+			for(i=0;i<pieceCount[oQ];i++) {
+				for(j=0;HVRule[so=pieceList[oQ, i], j, 0]!=NS;j++)
+					for(k=0;(ta=HVRule[so, j, k])!=NS;k++) {
+						if((cp=position[ta])==0) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)oQ<<otS)|((ulong)oQ<<ntS)|len3;
+						else { if(cp>>3!=whoseMove) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)oQ<<otS)|((ulong)oQ<<ntS)|((ulong)cp<<cpS)|len4; break; }
+					}
+				for(j=0;DIRule[so=pieceList[oQ, i], j, 0]!=NS;j++)
+					for(k=0;(ta=DIRule[so, j, k])!=NS;k++) {
+						if((cp=position[ta])==0) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)oQ<<otS)|((ulong)oQ<<ntS)|len3;
+						else { if(cp>>3!=whoseMove) TML[l++]=((ulong)so)|((ulong)ta<<taS)|((ulong)ta<<deS)|((ulong)oQ<<otS)|((ulong)oQ<<ntS)|((ulong)cp<<cpS)|len4; break; }
+					}
 			}
 
 			// 入堡棋步，這邊只檢查入堡權、當下的將軍以及中間的格子是否空的，攻擊檢查待會再做
@@ -688,6 +723,5 @@ namespace Mushikui_Puzzle_Workshop {
 				moveList[depth, i]|=((ulong)(cx==0?b1:(cy==0?b2:b3))<<dbS);
 			}
 		}
-
 	}
 }
