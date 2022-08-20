@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -32,7 +33,7 @@ namespace Mushikui_Puzzle_Workshop {
 			notifyIcon.Icon=Icon;
 			notifyIcon.Text=Text;
 
-			EN=new chessEngine("8/8/8/1r1b4/BpP5/1K6/8/3k4 b - c3 0 1");
+			EN=new chessEngine("rnb1kbnr/p3pppp/8/1Qp5/8/2P5/4PPPP/RNB1KBNR b KQkq - 0 8");
 
 			tstbFEN.Text=chessEngine.initFEN;			
 		}
@@ -262,6 +263,10 @@ namespace Mushikui_Puzzle_Workshop {
 				delTransTable();
 			}
 			stopSearch();
+
+#if DEBUG
+			tbOutput.Text+="\r\nCT0: "+EN.CT0+"\r\nCT1: "+EN.CT1+"\r\nCT2: "+EN.CT2+"\r\nTOT: "+(EN.CT0+EN.CT1+EN.CT2);
+#endif
 		}
 		private bool runSearch() {
 			int hash;

@@ -26,9 +26,13 @@ namespace Mushikui_Puzzle_Workshop
 		}
 		private struct pRule {
 			public int type;
-			public sq[] move;
+			public sq[] rule;
+			
+			public sq[,][]		move;
+			public sq[,][][]	ray;
+					
 			public pRule(int T, sq[] S) {
-				type=T; move=S;
+				type=T; rule=S; move=new sq[8, 8][]; ray=new sq[8, 8][][];
 			}
 		}
 		private struct cState {
@@ -355,7 +359,7 @@ namespace Mushikui_Puzzle_Workshop
 			moveHis=new string[maxDepth];
 			depth=0;
 
-			gen();
+			generateRuleData();
 
 			// 配置局面
 			fromFEN(FEN);
@@ -368,27 +372,25 @@ namespace Mushikui_Puzzle_Workshop
 				legalMovesLengthHis[depth]=0;	// 局面出現錯誤的話，直接設定合法棋步為空，此物件從此無法使用
 			}
 		}
-
-		private void gen() {
-			ulong b;
-			string s="";
-			int x, y, i;
-
-			for(y=0;y<8;y++)  {
-				for(x=0;x<8;x++) {
-					b=0;
-					foreach(sq d in pieceRule[bP].move)
-						if(inBoard(x+d.x, y+d.y))
-							b|=(ulong)(1)<<((x+d.x)+(y+d.y)*8);
-					s+="0x"+Conversion.Hex(b);
-					s+=",";
+		private void generateRuleData() {
+			int x, y, k, i, c;
+			for(k=wP;k<=bK;k++) for(x=0;x<8;x++) for(y=0;y<8;y++) {
+				if(pieceRule[k].type==0) {
+					c=0; foreach(sq d in pieceRule[k].rule) if(inBoard(x+d.x, y+d.y)) c++;
+					pieceRule[k].move[x,y]=new sq[c];
+					c=0; foreach(sq d in pieceRule[k].rule) if(inBoard(x+d.x, y+d.y)) pieceRule[k].move[x,y][c++].set(x+d.x, y+d.y);
+				} else {
+					c=0; foreach(sq d in pieceRule[k].rule) if(inBoard(x+d.x, y+d.y)) c++;
+					pieceRule[k].ray[x, y]=new sq[c][];
+					c=0; foreach(sq d in pieceRule[k].rule) if(inBoard(x+d.x, y+d.y)) {
+						for(i=1;i<8&&inBoard(x+i*d.x, y+i*d.y);i++);
+						pieceRule[k].ray[x, y][c]=new sq[i-1];
+						for(i=1;i<8&&inBoard(x+i*d.x, y+i*d.y);i++) pieceRule[k].ray[x, y][c][i-1].set(x+i*d.x, y+i*d.y);
+						c++;
+					}
 				}
-				s+="\r\n";
 			}
-
-			Console.WriteLine(s);
 		}
-
 		
 		/////////////////////////////////
 		// FEN 處理函數
@@ -507,48 +509,48 @@ namespace Mushikui_Puzzle_Workshop
 		private void loadState(stat st) {
 			castlingState=st.cs; enPassantState=st.ep; halfmoveClock=st.hm;
 		}
-		private int checkState(int side) {					// 將軍判斷，現在這個函數只有在載入的時候使用，計算合法棋步的時候若還用這個檢查就太慢了
+		private int checkState(int side) {					// 將軍判斷，現在這個函數只有在載入的時候使用
 			int sx=kingPos[side].x, sy=kingPos[side].y, p, i, c=0;
 			if(side==1) {
-				foreach(sq d in pieceRule[bP].move) if(inBoard(sx-d.x, sy-d.y)&&position[sx-d.x, sy-d.y]==bP) c++;
-				foreach(sq d in pieceRule[bN].move) if(inBoard(sx-d.x, sy-d.y)&&position[sx-d.x, sy-d.y]==bN) c++;
-				foreach(sq d in pieceRule[bB].move)
-					for(i=1;i<8&&inBoard(sx-i*d.x, sy-i*d.y);i++) {
-						p=position[sx-i*d.x, sy-i*d.y];
-						if(p==0) continue;
-						else {
-							if(p==bB||p==bQ||(i==1&&p==bK)) c++;
-							if(p==bP&&enPassantState.x==sx-i*d.x&&enPassantState.y==sy-i*d.y+1) {	// 斜方向遇到對方的兵要多做一個檢查，
-								for(i++;i<8&&inBoard(sx-i*d.x, sy-i*d.y);i++) {						// 否則未來會遇到「吃過路兵導致被對方將軍」這種實際上不可能發生的狀況。
-									p=position[sx-i*d.x, sy-i*d.y];
+				foreach(sq d in pieceRule[wP].move[sx, sy]) if(position[d.x, d.y]==bP) c++;		// 反方向的時候記得要採用另一方的兵的資料
+				foreach(sq d in pieceRule[bN].move[sx, sy]) if(position[d.x, d.y]==bN) c++;
+				foreach(sq d in pieceRule[bK].move[sx, sy]) if(position[d.x, d.y]==bK) c++;
+				foreach(sq[] r in pieceRule[bB].ray[sx, sy])
+					for(i=0;i<r.Length;i++) {
+						p=position[r[i].x, r[i].y];
+						if(p!=0) {
+							if(p==bB||p==bQ||(i==0&&p==bK)) c++;
+							if(p==bP&&enPassantState.x==r[i].x&&enPassantState.y==r[i].y+1) {	// 斜方向遇到對方的兵要多做一個檢查，
+								for(i++;i<r.Length;i++) {										// 否則未來會遇到「吃過路兵導致被對方將軍」這種實際上不可能發生的狀況。
+									p=position[r[i].x, r[i].y];
 									if(p==0) continue;
 									else {
 										if(p==bB||p==bQ) return -1;
 										break;
 									}
 								}
-							}
+							} 
 							break;
 						}
 					}
-				foreach(sq d in pieceRule[bR].move)
-					for(i=1;i<8&&inBoard(sx-i*d.x, sy-i*d.y);i++) {
-						p=position[sx-i*d.x, sy-i*d.y];
+				foreach(sq[] r in pieceRule[bR].ray[sx,sy])
+					foreach(sq d in r) {
+						p=position[d.x, d.y];
 						if(p==0) continue;
-						else { if(p==bR||p==bQ||(i==1&&p==bK)) c++; break; }
+						else { if(p==bR||p==bQ) c++; break; }
 					}
 			} else {
-				foreach(sq d in pieceRule[wP].move) if(inBoard(sx-d.x, sy-d.y)&&position[sx-d.x, sy-d.y]==wP) c++;
-				foreach(sq d in pieceRule[wN].move) if(inBoard(sx-d.x, sy-d.y)&&position[sx-d.x, sy-d.y]==wN) c++;
-				foreach(sq d in pieceRule[wB].move)
-					for(i=1;i<8&&inBoard(sx-i*d.x, sy-i*d.y);i++) {
-						p=position[sx-i*d.x, sy-i*d.y];
-						if(p==0) continue;
-						else {
-							if(p==wB||p==wQ||(i==1&&p==wK)) c++;
-							if(p==wP&&enPassantState.x==sx-i*d.x&&enPassantState.y==sy-i*d.y-1) {	// 斜方向遇到對方的兵要多做一個檢查，
-								for(i++;i<8&&inBoard(sx-i*d.x, sy-i*d.y);i++) {						// 否則未來會遇到「吃過路兵導致被對方將軍」這種實際上不可能發生的狀況。
-									p=position[sx-i*d.x, sy-i*d.y];
+				foreach(sq d in pieceRule[bP].move[sx, sy]) if(position[d.x, d.y]==wP) c++;		// 反方向的時候記得要採用另一方的兵的資料
+				foreach(sq d in pieceRule[wN].move[sx, sy]) if(position[d.x, d.y]==wN) c++;
+				foreach(sq d in pieceRule[wK].move[sx, sy]) if(position[d.x, d.y]==wK) c++;
+				foreach(sq[] r in pieceRule[wB].ray[sx,sy])
+					for(i=0;i<r.Length;i++) {
+						p=position[r[i].x, r[i].y];
+						if(p!=0) {
+							if(p==wB||p==wQ||(i==0&&p==wK)) c++;
+							if(p==wP&&enPassantState.x==r[i].x&&enPassantState.y==r[i].y-1) {	// 斜方向遇到對方的兵要多做一個檢查，
+								for(i++;i<r.Length;i++) {										// 否則未來會遇到「吃過路兵導致被對方將軍」這種實際上不可能發生的狀況。
+									p=position[r[i].x, r[i].y];
 									if(p==0) continue;
 									else {
 										if(p==wB||p==wQ) return -1;
@@ -559,11 +561,11 @@ namespace Mushikui_Puzzle_Workshop
 							break;
 						}
 					}
-				foreach(sq d in pieceRule[wR].move)
-					for(i=1;i<8&&inBoard(sx-i*d.x, sy-i*d.y);i++) {
-						p=position[sx-i*d.x, sy-i*d.y];
+				foreach(sq[] r in pieceRule[wR].ray[sx,sy])
+					foreach(sq d in r) {
+						p=position[d.x, d.y];
 						if(p==0) continue;
-						else { if(p==wR||p==wQ||(i==1&&p==wK)) c++; break; }
+						else { if(p==wR||p==wQ) c++; break; }
 					}
 			}
 			return c;
@@ -583,7 +585,11 @@ namespace Mushikui_Puzzle_Workshop
 		
 		private move[,,]	DisambList			=new move[8,8,16];
 		private int[,]		DisambListLength	=new int[8,8];
-		
+
+#if DEBUG
+		public int CT0=0, CT1=0, CT2=0;
+#endif
+
 		private bool computeLegalMoves() {
 			move[] L=new move[maxVar];
 			int[] tag=new int[maxVar];
@@ -599,16 +605,22 @@ namespace Mushikui_Puzzle_Workshop
 				if(side(k)==1-whoseMove&&(pieceRange[k,sx,sy]&
 					pieceRange[oK,kingPos[whoseMove].x,kingPos[whoseMove].y])!=(ulong)0) {		// 如果其移動範圍根本打從一開始跟國王附近沒有交集，就不用理會
 					if(pieceRule[k].type==0) {
-						foreach(sq d in pieceRule[k].move)
-							if(inBoard(sx+d.x, sy+d.y)) attackByOpp[sx+d.x, sy+d.y]=true;
-								
+						foreach(sq d in pieceRule[k].move[sx, sy]) {
+							attackByOpp[d.x, d.y]=true;
+#if DEBUG
+							CT0++;
+#endif
+						}
 					} else {
-						foreach(sq d in pieceRule[k].move)
-							for(i=1;i<8&&inBoard(sx+i*d.x, sy+i*d.y);i++) {
-								attackByOpp[sx+i*d.x, sy+i*d.y]=true;
-								if(position[sx+i*d.x, sy+i*d.y]==oK&&inBoard(sx+(i+1)*d.x, sy+(i+1)*d.y))	// 如果碰到我方國王，把下一格也列入攻擊範圍（以免國王往反方向跑）
-									attackByOpp[sx+(i+1)*d.x, sy+(i+1)*d.y]=true;							// 很容易忽略的程式設計盲點！
-								if(position[sx+i*d.x, sy+i*d.y]!=0) break;
+						foreach(sq[] r in pieceRule[k].ray[sx, sy])
+							for(i=0;i<r.Length;i++) {
+#if DEBUG
+								CT0++;
+#endif							
+								attackByOpp[r[i].x, r[i].y]=true;
+								if(position[r[i].x, r[i].y]==oK&&i<r.Length-1)		// 如果碰到我方國王，把下一格也列入攻擊範圍（以免國王往反方向跑）
+									attackByOpp[r[i+1].x, r[i+1].y]=true;			// 很容易忽略的程式設計盲點！
+								if(position[r[i].x, r[i].y]!=0) break;
 							}
 					}
 				}
@@ -623,14 +635,20 @@ namespace Mushikui_Puzzle_Workshop
 							if(sy==(w?6:1)) for(j=oR;j<oK;j++) L[l++]=new move(sx, sy, sx, sy+(w?1:-1), 0, j);
 							else L[l++]=new move(sx, sy, sx, sy+(w?1:-1), 0, 0);
 							if(sy==(w?1:6)&&position[sx, sy+(w?2:-2)]==0) L[l++]=new move(sx, sy, sx, sy+(w?2:-2), 0, 0);
+#if DEBUG
+							CT1++;
+#endif
 						}
-						foreach(sq d in pieceRule[k].move) if(inBoard(sx+d.x, sy+d.y)) {
-							if(side(position[sx+d.x, sy+d.y])==1-whoseMove) {
-								if(sy==(w?6:1)) for(j=oR;j<oK;j++) L[l++]=new move(sx, sy, sx+d.x, sy+d.y, position[sx+d.x, sy+d.y], j);
-								else L[l++]=new move(sx, sy, sx+d.x, sy+d.y, position[sx+d.x, sy+d.y], 0);
+						foreach(sq d in pieceRule[k].move[sx, sy]) {
+							if(side(position[d.x, d.y])==1-whoseMove) {
+								if(sy==(w?6:1)) for(j=oR;j<oK;j++) L[l++]=new move(sx, sy, d.x, d.y, position[d.x, d.y], j);
+								else L[l++]=new move(sx, sy, d.x, d.y, position[d.x, d.y], 0);
 							}
-							if(sx+d.x==enPassantState.x&&sy+d.y==enPassantState.y)
-								L[l++]=new move(sx, sy, sx+d.x, sy+d.y, w?7:1, epMove);
+							if(d.x==enPassantState.x&&d.y==enPassantState.y)
+								L[l++]=new move(sx, sy, d.x, d.y, w?7:1, epMove);
+#if DEBUG
+							CT1++;
+#endif
 						}
 					}
 					
@@ -645,19 +663,27 @@ namespace Mushikui_Puzzle_Workshop
 					// 普通棋步（含國王的）
 					if(k!=oP) {
 						if(pieceRule[k].type==0) {
-							foreach(sq d in pieceRule[k].move)
-								if(inBoard(sx+d.x, sy+d.y)&&side(position[sx+d.x, sy+d.y])!=whoseMove)
-									L[l++]=new move(sx, sy, sx+d.x, sy+d.y, position[sx+d.x, sy+d.y], 0);
+							foreach(sq d in pieceRule[k].move[sx, sy]) {
+								if(side(position[d.x, d.y])!=whoseMove)
+									L[l++]=new move(sx, sy, d.x, d.y, position[d.x, d.y], 0);
+#if DEBUG
+								CT1++;
+#endif
+							}
 						} else {
-							foreach(sq d in pieceRule[k].move)
-								for(i=1;i<8&&inBoard(sx+i*d.x, sy+i*d.y);i++)
-									if(position[sx+i*d.x, sy+i*d.y]==0)
-										L[l++]=new move(sx, sy, sx+i*d.x, sy+i*d.y, 0, 0);
+							foreach(sq[] r in pieceRule[k].ray[sx, sy])
+								foreach(sq d in r) {
+#if DEBUG
+									CT1++;
+#endif
+									if(position[d.x, d.y]==0)
+										L[l++]=new move(sx, sy, d.x, d.y, 0, 0);
 									else {
-										if(side(position[sx+i*d.x, sy+i*d.y])!=whoseMove)
-											L[l++]=new move(sx, sy, sx+i*d.x, sy+i*d.y, position[sx+i*d.x, sy+i*d.y], 0);
+										if(side(position[d.x, d.y])!=whoseMove)
+											L[l++]=new move(sx, sy, d.x, d.y, position[d.x, d.y], 0);
 										break;
 									}
+								}
 						}
 					}
 				}
@@ -695,50 +721,78 @@ namespace Mushikui_Puzzle_Workshop
 			
 			// 處理敵方國王
 			sx=kingPos[1-whoseMove].x; sy=kingPos[1-whoseMove].y;
-			foreach(sq d in pieceRule[oP].move) if(inBoard(sx-d.x, sy-d.y)) canAttackOppKing[sx-d.x, sy-d.y, oP]=true;
-			foreach(sq d in pieceRule[oN].move) if(inBoard(sx-d.x, sy-d.y)) canAttackOppKing[sx-d.x, sy-d.y, oN]=true;
-			foreach(sq d in pieceRule[oB].move)
-				for(i=1;i<8&&inBoard(sx-i*d.x, sy-i*d.y);i++) {
-					canAttackOppKing[sx-i*d.x, sy-i*d.y, oB]=true;
-					canAttackOppKing[sx-i*d.x, sy-i*d.y, oQ]=true;
-					if(position[sx-i*d.x, sy-i*d.y]!=0) {
-						if(	side(position[sx-i*d.x, sy-i*d.y])==whoseMove||(position[sx-i*d.x, sy-i*d.y]==pP&&
-							enPassantState.x==sx-i*d.x&&enPassantState.y==sy-i*d.y+(whoseMove==1?1:-1))) {				// 處理敵方國王的時候，斜向要考慮吃過路兵閃擊
+			foreach(sq d in pieceRule[pP].move[sx, sy]) {
+				canAttackOppKing[d.x, d.y, oP]=true;						// 記得要用另一方的兵
+#if DEBUG
+				CT2++;
+#endif
+			}
+			foreach(sq d in pieceRule[oN].move[sx, sy]) {
+				canAttackOppKing[d.x, d.y, oN]=true;
+#if DEBUG
+				CT2++;
+#endif
+			}
+			foreach(sq[] r in pieceRule[oB].ray[sx, sy])
+				for(i=0;i<r.Length;i++) {
+#if DEBUG
+					CT2++;
+#endif
+					canAttackOppKing[r[i].x, r[i].y, oB]=true;
+					canAttackOppKing[r[i].x, r[i].y, oQ]=true;
+					if(position[r[i].x, r[i].y]!=0) {
+						if(	side(position[r[i].x, r[i].y])==whoseMove||(position[r[i].x, r[i].y]==pP&&
+							enPassantState.x==r[i].x&&enPassantState.y==r[i].y+(whoseMove==1?1:-1))) {				// 處理敵方國王的時候，斜向要考慮吃過路兵閃擊
 							j=i;
-							for(i++;i<8&&inBoard(sx-i*d.x, sy-i*d.y);i++) {
-								if(position[sx-i*d.x, sy-i*d.y]==oB||position[sx-i*d.x, sy-i*d.y]==oQ) pinBySelf[sx-j*d.x, sy-j*d.y]=true;
-								if(position[sx-i*d.x, sy-i*d.y]!=0) break;
+							for(i++;i<r.Length;i++) {
+#if DEBUG
+								CT2++;
+#endif
+								if(position[r[i].x, r[i].y]==oB||position[r[i].x, r[i].y]==oQ) pinBySelf[r[j].x, r[j].y]=true;
+								if(position[r[i].x, r[i].y]!=0) break;
 							}
 						}
 						break;
 					}
 				}
-			foreach(sq d in pieceRule[oR].move)
-				for(i=1;i<8&&inBoard(sx-i*d.x, sy-i*d.y);i++) {
-					canAttackOppKing[sx-i*d.x, sy-i*d.y, oR]=true;
-					canAttackOppKing[sx-i*d.x, sy-i*d.y, oQ]=true;
-					if(position[sx-i*d.x, sy-i*d.y]!=0) {
-						if(	side(position[sx-i*d.x, sy-i*d.y])==whoseMove||(d.y==0&&position[sx-i*d.x, sy-i*d.y]==pP&&
-							enPassantState.x==sx-i*d.x&&enPassantState.y==sy-i*d.y+(whoseMove==1?1:-1))) {
+			foreach(sq[] r in pieceRule[oR].ray[sx, sy])
+				for(i=0;i<r.Length;i++) {
+#if DEBUG
+					CT2++;
+#endif
+					canAttackOppKing[r[i].x, r[i].y, oR]=true;
+					canAttackOppKing[r[i].x, r[i].y, oQ]=true;
+					if(position[r[i].x, r[i].y]!=0) {
+						if(	side(position[r[i].x, r[i].y])==whoseMove||(r[0].y==sy&&position[r[i].x, r[i].y]==pP&&
+							enPassantState.x==r[i].x&&enPassantState.y==r[i].y+(whoseMove==1?1:-1))) {
 							j=i;
-							if(d.y==0&&inBoard(sx-(i+1)*d.x, sy-(i+1)*d.y)) {											// 橫方向上需要再多做吃過路兵的一次閃兩子判別
-								if(position[sx-i*d.x, sy-i*d.y]==oP&&position[sx-(i+1)*d.x, sy-(i+1)*d.y]==pP&&
-									enPassantState.x==sx-(i+1)*d.x&&enPassantState.y==sy-(i+1)*d.y+(whoseMove==1?1:-1)) {
-									for(i+=2;i<8&&inBoard(sx-i*d.x, sy-i*d.y);i++) {
-										if(position[sx-i*d.x, sy-i*d.y]==oR||position[sx-i*d.x, sy-i*d.y]==oQ) pinBySelf[sx-(j+1)*d.x, sy-(j+1)*d.y]=true;
-										if(position[sx-i*d.x, sy-i*d.y]!=0) break;
+							if(r[0].y==sy&&i<r.Length-1) {											// 橫方向上需要再多做吃過路兵的一次閃兩子判別
+								if(position[r[i].x, r[i].y]==oP&&position[r[i+1].x, r[i+1].y]==pP&&
+									enPassantState.x==r[i+1].x&&enPassantState.y==r[i+1].y+(whoseMove==1?1:-1)) {
+									for(i+=2;i<r.Length;i++) {
+#if DEBUG
+										CT2++;
+#endif
+										if(position[r[i].x, r[i].y]==oR||position[r[i].x, r[i].y]==oQ) pinBySelf[r[j+1].x, r[j+1].y]=true;
+										if(position[r[i].x, r[i].y]!=0) break;
 									}
-								} else if(position[sx-i*d.x, sy-i*d.y]==pP&&position[sx-(i+1)*d.x, sy-(i+1)*d.y]==oP&&
-									enPassantState.x==sx-i*d.x&&enPassantState.y==sy-i*d.y+(whoseMove==1?1:-1)) {
-									for(i+=2;i<8&&inBoard(sx-i*d.x, sy-i*d.y);i++) {
-										if(position[sx-i*d.x, sy-i*d.y]==oR||position[sx-i*d.x, sy-i*d.y]==oQ) pinBySelf[sx-j*d.x, sy-j*d.y]=true;
-										if(position[sx-i*d.x, sy-i*d.y]!=0) break;
+								} else if(position[r[i].x, r[i].y]==pP&&position[r[i+1].x, r[i+1].y]==oP&&
+									enPassantState.x==r[i].x&&enPassantState.y==r[i].y+(whoseMove==1?1:-1)) {
+									for(i+=2;i<r.Length;i++) {
+#if DEBUG
+										CT2++;
+#endif
+										if(position[r[i].x, r[i].y]==oR||position[r[i].x, r[i].y]==oQ) pinBySelf[r[j].x, r[j].y]=true;
+										if(position[r[i].x, r[i].y]!=0) break;
 									}
 								}
 							} else {
-								for(i++;i<8&&inBoard(sx-i*d.x, sy-i*d.y);i++) {
-									if(position[sx-i*d.x, sy-i*d.y]==oR||position[sx-i*d.x, sy-i*d.y]==oQ) pinBySelf[sx-j*d.x, sy-j*d.y]=true;
-									if(position[sx-i*d.x, sy-i*d.y]!=0) break;
+								for(i++;i<r.Length;i++) {
+#if DEBUG
+									CT2++;
+#endif
+									if(position[r[i].x, r[i].y]==oR||position[r[i].x, r[i].y]==oQ) pinBySelf[r[j].x, r[j].y]=true;
+									if(position[r[i].x, r[i].y]!=0) break;
 								}
 							}
 						}
@@ -748,53 +802,81 @@ namespace Mushikui_Puzzle_Workshop
 
 			// 處理我方國王
 			sx=kingPos[whoseMove].x; sy=kingPos[whoseMove].y;
-			foreach(sq d in pieceRule[pP].move) if(inBoard(sx-d.x, sy-d.y)&&position[sx-d.x, sy-d.y]==pP) { checkPieceCount++; canStopCheck[sx-d.x, sy-d.y]=true;}
-			foreach(sq d in pieceRule[pN].move) if(inBoard(sx-d.x, sy-d.y)&&position[sx-d.x, sy-d.y]==pN) { checkPieceCount++; canStopCheck[sx-d.x, sy-d.y]=true;}
-			foreach(sq d in pieceRule[pB].move)
-				for(i=1;i<8&&inBoard(sx-i*d.x, sy-i*d.y);i++) {
-					if(position[sx-i*d.x, sy-i*d.y]==pB||position[sx-i*d.x, sy-i*d.y]==pQ) {
+			foreach(sq d in pieceRule[oP].move[sx, sy]) if(position[d.x, d.y]==pP) {
+#if DEBUG
+				CT2++;
+#endif
+				checkPieceCount++; canStopCheck[d.x, d.y]=true;			// 記得反方向採用另一方的兵
+			}
+			foreach(sq d in pieceRule[pN].move[sx, sy]) if(position[d.x, d.y]==pN) {
+#if DEBUG
+				CT2++;
+#endif
+				checkPieceCount++; canStopCheck[d.x, d.y]=true;
+			}
+			foreach(sq[] r in pieceRule[pB].ray[sx, sy])
+				for(i=0;i<r.Length;i++) {
+					if(position[r[i].x, r[i].y]==pB||position[r[i].x, r[i].y]==pQ) {
+#if DEBUG
+						CT2++;
+#endif
 						checkPieceCount++;
-						for(j=1;j<=i;j++) canStopCheck[sx-j*d.x, sy-j*d.y]=true;
+						for(j=0;j<=i;j++) canStopCheck[r[j].x, r[j].y]=true;
 					}
-					if(position[sx-i*d.x, sy-i*d.y]!=0) {
-						if(side(position[sx-i*d.x, sy-i*d.y])==whoseMove) {
+					if(position[r[i].x, r[i].y]!=0) {
+						if(side(position[r[i].x, r[i].y])==whoseMove) {
 							j=i;
-							for(i++;i<8&&inBoard(sx-i*d.x, sy-i*d.y);i++) {
-								if(position[sx-i*d.x, sy-i*d.y]==pB||position[sx-i*d.x, sy-i*d.y]==pQ) pinByOpp[sx-j*d.x, sy-j*d.y]=true;
-								if(position[sx-i*d.x, sy-i*d.y]!=0) break;
+							for(i++;i<r.Length;i++) {
+#if DEBUG
+								CT2++;
+#endif
+								if(position[r[i].x, r[i].y]==pB||position[r[i].x, r[i].y]==pQ) pinByOpp[r[j].x, r[j].y]=true;
+								if(position[r[i].x, r[i].y]!=0) break;
 							}
 						}
 						break;
 					}
 				}
-			foreach(sq d in pieceRule[pR].move)
-				for(i=1;i<8&&inBoard(sx-i*d.x, sy-i*d.y);i++) {
-					if(position[sx-i*d.x, sy-i*d.y]==pR||position[sx-i*d.x, sy-i*d.y]==pQ) {
+			foreach(sq[] r in pieceRule[pR].ray[sx, sy])
+				for(i=0;i<r.Length;i++) {
+#if DEBUG
+					CT2++;
+#endif
+					if(position[r[i].x, r[i].y]==pR||position[r[i].x, r[i].y]==pQ) {
 						checkPieceCount++;
-						for(j=1;j<=i;j++) canStopCheck[sx-j*d.x, sy-j*d.y]=true;
+						for(j=0;j<=i;j++) canStopCheck[r[j].x, r[j].y]=true;
 					}
-					if(position[sx-i*d.x, sy-i*d.y]!=0) {
-						if(side(position[sx-i*d.x, sy-i*d.y])==whoseMove||
-							(d.y==0&&position[sx-i*d.x, sy-i*d.y]==pP&&enPassantState.x==sx-i*d.x&&enPassantState.y==sy-i*d.y+(whoseMove==1?1:-1))) {
+					if(position[r[i].x, r[i].y]!=0) {
+						if(side(position[r[i].x, r[i].y])==whoseMove||
+							(r[0].y==sy&&position[r[i].x, r[i].y]==pP&&enPassantState.x==r[i].x&&enPassantState.y==r[i].y+(whoseMove==1?1:-1))) {
 							j=i;
-							if(d.y==0&&inBoard(sx-(i+1)*d.x, sy-(i+1)*d.y)) {											// 橫方向上需要再多做吃過路兵的一次閃兩子判別
-								if(position[sx-i*d.x, sy-i*d.y]==oP&&position[sx-(i+1)*d.x, sy-(i+1)*d.y]==pP&&
-									enPassantState.x==sx-(i+1)*d.x&&enPassantState.y==sy-(i+1)*d.y+(whoseMove==1?1:-1)) {
-									for(i+=2;i<8&&inBoard(sx-i*d.x, sy-i*d.y);i++) {
-										if(position[sx-i*d.x, sy-i*d.y]==pR||position[sx-i*d.x, sy-i*d.y]==pQ) pinByOpp[sx-j*d.x, sy-j*d.y]=true;
-										if(position[sx-i*d.x, sy-i*d.y]!=0) break;
+							if(r[0].y==sy&&i<r.Length-1) {											// 橫方向上需要再多做吃過路兵的一次閃兩子判別
+								if(position[r[i].x, r[i].y]==oP&&position[r[i+1].x, r[i+1].y]==pP&&
+									enPassantState.x==r[i+1].x&&enPassantState.y==r[i+1].y+(whoseMove==1?1:-1)) {
+									for(i+=2;i<8&&inBoard(r[i].x, r[i].y);i++) {
+#if DEBUG
+										CT2++;
+#endif
+										if(position[r[i].x, r[i].y]==pR||position[r[i].x, r[i].y]==pQ) pinByOpp[r[j].x, r[j].y]=true;
+										if(position[r[i].x, r[i].y]!=0) break;
 									}
-								} else if(position[sx-i*d.x, sy-i*d.y]==pP&&position[sx-(i+1)*d.x, sy-(i+1)*d.y]==oP&&
-									enPassantState.x==sx-i*d.x&&enPassantState.y==sy-i*d.y+(whoseMove==1?1:-1)) {
-									for(i+=2;i<8&&inBoard(sx-i*d.x, sy-i*d.y);i++) {
-										if(position[sx-i*d.x, sy-i*d.y]==pR||position[sx-i*d.x, sy-i*d.y]==pQ) pinByOpp[sx-(j+1)*d.x, sy-(j+1)*d.y]=true;
-										if(position[sx-i*d.x, sy-i*d.y]!=0) break;
+								} else if(position[r[i].x, r[i].y]==pP&&position[r[i+1].x, r[i+1].y]==oP&&
+									enPassantState.x==r[i].x&&enPassantState.y==r[i].y+(whoseMove==1?1:-1)) {
+									for(i+=2;i<8&&inBoard(r[i].x, r[i].y);i++) {
+#if DEBUG
+										CT2++;
+#endif
+										if(position[r[i].x, r[i].y]==pR||position[r[i].x, r[i].y]==pQ) pinByOpp[r[j+1].x, r[j+1].y]=true;
+										if(position[r[i].x, r[i].y]!=0) break;
 									}
 								}
 							} else {
-								for(i++;i<8&&inBoard(sx-i*d.x, sy-i*d.y);i++) {
-									if(position[sx-i*d.x, sy-i*d.y]==pR||position[sx-i*d.x, sy-i*d.y]==pQ) pinByOpp[sx-j*d.x, sy-j*d.y]=true;
-									if(position[sx-i*d.x, sy-i*d.y]!=0) break;
+								for(i++;i<r.Length;i++) {
+#if DEBUG
+									CT2++;
+#endif
+									if(position[r[i].x, r[i].y]==pR||position[r[i].x, r[i].y]==pQ) pinByOpp[r[j+1].x, r[j+1].y]=true;
+									if(position[r[i].x, r[i].y]!=0) break;
 								}
 							}
 						}
