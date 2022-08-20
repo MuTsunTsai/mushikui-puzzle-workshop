@@ -10,6 +10,14 @@ namespace Mushikui_Puzzle_Workshop
 	class chessEngine
 	{
 		/////////////////////////////////
+		// 測速程式
+		/////////////////////////////////
+
+		public void test() {
+			computeLegalMoves();
+		}
+	
+		/////////////////////////////////
 		// 資料結構
 		/////////////////////////////////
 	
@@ -536,7 +544,7 @@ namespace Mushikui_Puzzle_Workshop
 										break;
 									}
 								}
-							} 
+							}
 							break;
 						}
 					}

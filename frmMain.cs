@@ -33,9 +33,23 @@ namespace Mushikui_Puzzle_Workshop {
 			notifyIcon.Icon=Icon;
 			notifyIcon.Text=Text;
 
-			EN=new chessEngine("rnbq3r/ppp1kp1p/7p/4P3/8/b7/PPP1PPPP/2KR1BNR w - - 0 7");
+			//EN.load("rn6/p4k1p/6p1/1pP1p3/8/7P/P4P1P/2K4R w - b6 0 21");
+			//SW.Start();
+			//EN.test();
+			//SW.Stop();
+			//MessageBox.Show(SW.Elapsed.TotalSeconds.ToString());
+			//SW.Reset();
 
-			tstbFEN.Text=chessEngine.initFEN;
+			//chessEngine E=new chessEngine("rn6/p4k1p/6p1/1pP1p3/8/7P/P4P1P/2K4R w - b6 0 21");
+			//SW.Start();
+			//for(i=0;i<(1<<19);i++) E.test();
+			//SW.Stop();
+			//MessageBox.Show(SW.Elapsed.TotalSeconds.ToString());
+			//SW.Reset();
+
+			EN.load("8/8/8/8/4k3/8/8/4K2R w K - 0 1");
+			
+			tstbFEN.Text=chessEngine2.initFEN;
 		}
 
 		/////////////////////////////////
@@ -85,7 +99,7 @@ namespace Mushikui_Puzzle_Workshop {
 		/////////////////////////////////
 
 		private void tsbtResetFEN_Click(object sender, EventArgs e) {
-			tstbFEN.Text=chessEngine.initFEN;
+			tstbFEN.Text=chessEngine2.initFEN;
 		}
 		private void tsmiMultipleSearch_Click(object sender, EventArgs e) {
 			tssbtFunction.Image=imageList.Images[9];
@@ -140,14 +154,14 @@ namespace Mushikui_Puzzle_Workshop {
 		/////////////////////////////////
 
 		private bool STOP=true;
-		private chessEngine EN;
+		private chessEngine2 EN=new chessEngine2();
 		private Stopwatch SW=new Stopwatch();
 		private const int TOL=2000000;
 
-		private int[] goal=new int[chessEngine.maxDepth];
+		private int[] goal=new int[chessEngine2.maxDepth];
 		private int goalLength;
 		private int I, C, TOC;
-		private int[] J=new int[chessEngine.maxDepth];
+		private int[] J=new int[chessEngine2.maxDepth];
 
 		private void startSearch() {
 			STOP=false; tbOutput.Text="";
@@ -157,7 +171,7 @@ namespace Mushikui_Puzzle_Workshop {
 			delTransTable();
 			if(STOP) return;
 			SW.Stop();
-			tbOutput.Text+="\r\nTime used: "+SW.Elapsed.TotalSeconds; //+"."+SW.ElapsedMilliseconds;
+			tbOutput.Text+="\r\nTime used: "+SW.Elapsed.TotalSeconds+"\r\nTicks: "+SW.ElapsedTicks;
 			toolStripStatusLabel.Text="";
 			tsbtSearch.Checked=false;
 			STOP=true;
@@ -178,19 +192,21 @@ namespace Mushikui_Puzzle_Workshop {
 
 		private ComputerInfo CInfo=new ComputerInfo();
 
-		private HashTable<bool> transTable=new HashTable<bool>(hashBits, chessEngine.posDataSize);		// false=無解 true=有解
+		private HashTable<bool> transTable=new HashTable<bool>(hashBits, chessEngine2.posDataSize);		// false=無解 true=有解
 
 		private int[]	branchSize;
 		private bool[]	hasSolution;	// 目前的 DFS 當中各層是否有解
 
 		private int posCount, transCount, collCount;
 		
+		private string outputString;
+		
 		private void initTransTable() {
 			transTable.Initialize();
 						
 			// 下列兩個陣列不用初始化，因為程式執行過程中會自動配值
-			branchSize=new int[chessEngine.maxDepth];
-			hasSolution=new bool[chessEngine.maxDepth];
+			branchSize=new int[chessEngine2.maxDepth];
+			hasSolution=new bool[chessEngine2.maxDepth];
 			
 			posCount=0; transCount=0; collCount=0;
 		}
@@ -232,37 +248,36 @@ namespace Mushikui_Puzzle_Workshop {
 				initTransTable();	
 				goalLength=l;
 				if(goalLength>0) {
-					EN=new chessEngine(FEN);
-					if(EN.positionError) {
-						MessageBox.Show("Inputed FEN is not a legal position: "+EN.positionErrorText);
+					if(!EN.load(FEN)) {
+						MessageBox.Show("Inputed FEN is not a legal position: "+EN.errorText);
 						stopSearch();
 					}
 					I=0; C=0; J[0]=0; branchSize[0]=1; hasSolution[0]=false;
+					outputString="";
 					while(!STOP&&runSearch()) {
-						TOC+=EN.legalMovesLength;
+						TOC+=EN.moveCount;
 						if(TOC>TOL&&I>1) {
 							Application.DoEvents();
 							toolStripStatusLabel.Text=EN.PGN;
+							tbOutput.Text+=outputString;
+							outputString="";
 							TOC=0;
 						}
 					}
+					tbOutput.Text+=outputString;
 				} else MessageBox.Show("Please enter a pattern.");
 				tbOutput.Text+="\r\nPosition:"+posCount+", Transposition:"+transCount+", Collision:"+collCount;
 				delTransTable();
 			}
 			stopSearch();
-
-#if DEBUG
-			tbOutput.Text+="\r\nCT0: "+EN.CT0+"\r\nCT1: "+EN.CT1+"\r\nCT2: "+EN.CT2+"\r\nTOT: "+(EN.CT0+EN.CT1+EN.CT2);
-#endif
 		}
 		private bool runSearch() {
 			if(I==goalLength&&!foundSolution(false)) return false;
-			while(goal[I]>1&&J[I]<EN.legalMovesLength&&EN.legalMovesSL(J[I])!=goal[I]) J[I]++;
-			if(J[I]==EN.legalMovesLength) {
+			while(goal[I]>1&&J[I]<EN.moveCount&&EN.moveLength(J[I])!=goal[I]) J[I]++;
+			if(J[I]==EN.moveCount) {
 				if(I==0) {
-					if(C==0) tbOutput.Text="There's no solution to this pattern.";
-					else tbOutput.Text+="\r\n"+C+" solution(s) exist to this pattern.";
+					if(C==0) outputString="There's no solution to this pattern.";
+					else outputString+="\r\n"+C+" solution(s) exist to this pattern.";
 					return false;
 				} else {
 					if(I>2) {
@@ -288,11 +303,11 @@ namespace Mushikui_Puzzle_Workshop {
 		private void runRetract() { branchSize[I-1]+=branchSize[I]; EN.retract(); I--; J[I]++;}		// 這個部分跟多重搜尋是共用的
 		private bool foundSolution(bool trans) {
 			int i;
-			tbOutput.Text+=EN.PGN+(trans?"transposition":"")+"\r\n"+(tsbtShowFEN.Checked?EN.FEN+"\r\n":"");
+			outputString+=EN.PGN+(trans?"transposition":"")+"\r\n"+(tsbtShowFEN.Checked?EN.FEN+"\r\n":"");
 			for(i=I;i>=0&&!hasSolution[i];i--) hasSolution[i]=true;
 			runRetract(); C++;
 			if(!tsbtListAll.Checked&&C==10) {
-				tbOutput.Text+="\r\nToo many solutions. Forced stop. Use \"list all solutions\" option if needed.";
+				outputString+="\r\nToo many solutions. Forced stop. Use \"list all solutions\" option if needed.";
 				return false;
 			}
 			return true;
@@ -327,9 +342,8 @@ namespace Mushikui_Puzzle_Workshop {
 				}
 			}
 			initTransTable();
-			EN=new chessEngine(FEN);
-			if(EN.positionError) {
-				MessageBox.Show("Inputed FEN is not a legal position: "+EN.positionErrorText);
+			if(!EN.load(FEN)) {
+				MessageBox.Show("Inputed FEN is not a legal position: "+EN.errorText);
 				stopSearch();
 			}
 			foreach(List<int> L in goalList) {
@@ -340,10 +354,10 @@ namespace Mushikui_Puzzle_Workshop {
 					clearTransTable();
 					for(i=0;i<L.Count;i++) goal[i]=L[i];
 					toolStripStatusLabel.Text=goalToStar();
-					EN=new chessEngine(FEN);
+					EN.load(FEN);
 					I=0; C=0; J[0]=0; branchSize[0]=1; hasSolution[0]=false;
 					while(!STOP&&runMulSearch()) {
-						TOC+=EN.legalMovesLength;
+						TOC+=EN.moveCount;
 						if(TOC>TOL) { Application.DoEvents(); TOC=0;}
 					}
 					if(C>0) tbInput.Text+=goalToStar()+"\r\n";
@@ -375,8 +389,8 @@ namespace Mushikui_Puzzle_Workshop {
 				runRetract(); C++;
 				if(C>1) return false;
 			}
-			while(goal[I]>1&&J[I]<EN.legalMovesLength&&EN.legalMovesSL(J[I])!=goal[I]) J[I]++;
-			if(J[I]==EN.legalMovesLength) {
+			while(goal[I]>1&&J[I]<EN.moveCount&&EN.moveLength(J[I])!=goal[I]) J[I]++;
+			if(J[I]==EN.moveCount) {
 				if(I==0) return false;
 				else {
 					if(I>2) {
@@ -418,7 +432,6 @@ namespace Mushikui_Puzzle_Workshop {
 				}
 			}
 			foreach(List<int> L in goalList) {
-				Application.DoEvents();
 				goalLength=L.Count;
 				if(goalLength>0) {
 					for(i=0;i<L.Count;i++) goal[i]=L[i];
