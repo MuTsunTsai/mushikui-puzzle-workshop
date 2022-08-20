@@ -161,7 +161,7 @@ namespace Mushikui_Puzzle_Workshop {
 		private bool STOP=true;
 		private chessEngine2 EN=new chessEngine2();
 		private Stopwatch SW=new Stopwatch();
-		private const int TOL=4000000;
+		private const int TOL=5000000;
 
 		private int[] goal=new int[chessEngine2.maxDepth];
 		private int goalLength;
@@ -248,6 +248,7 @@ namespace Mushikui_Puzzle_Workshop {
 					goal[l++]=j;
 				}
 			}
+			goal[l]=0;	// 在尾端設置一個零，強迫最後一次使用完整的合法棋步生成，以判斷將死與否
 			if(l==lengthLimit) MessageBox.Show("Input problem exceed length "+lengthLimit+" limit. The problem will not be processed.");
 			else {
 				initTransTable();	
@@ -294,7 +295,7 @@ namespace Mushikui_Puzzle_Workshop {
 					runRetract();
 				}
 			} else {
-				EN.play(J[I]); I++; J[I]=0; branchSize[I]=1; hasSolution[I]=false;
+				EN.play(J[I], goal[I+1]); I++; J[I]=0; branchSize[I]=1; hasSolution[I]=false;
 				if(I>2) {
 					if(transTable.LookUp(EN.positionData)) {
 						transCount++;
@@ -357,7 +358,7 @@ namespace Mushikui_Puzzle_Workshop {
 				goalLength=L.Count;
 				if(goalLength>0) {
 					clearTransTable();
-					for(i=0;i<L.Count;i++) goal[i]=L[i];
+					for(i=0;i<L.Count;i++) goal[i]=L[i]; goal[i]=0;
 					toolStripStatusLabel.Text=goalToStar();
 					EN.load(FEN);
 					I=0; C=0; J[0]=0; branchSize[0]=1; hasSolution[0]=false;
@@ -405,7 +406,7 @@ namespace Mushikui_Puzzle_Workshop {
 					runRetract();
 				}
 			} else {
-				EN.play(J[I]); I++; J[I]=0; branchSize[I]=1; hasSolution[I]=false;
+				EN.play(J[I], goal[I+1]); I++; J[I]=0; branchSize[I]=1; hasSolution[I]=false;
 				if(I>2) {
 					if(transTable.LookUp(EN.positionData)) {
 						if(transTable.Value) { C++; return false; }	// 找到調換解，可以結束了。

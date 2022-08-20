@@ -456,7 +456,8 @@ namespace Mushikui_Puzzle_Workshop {
 		// 行棋函數
 		/////////////////////////////////
 
-		public void play(int i) {
+		public void play(int i) { play(i, 0);}		
+		public void play(int i, int len) {
 			ulong m=moveList[depth, i];
 			moveHis[depth]=m;
 			byte so=(byte)(m&0x3F);
@@ -526,7 +527,14 @@ namespace Mushikui_Puzzle_Workshop {
 			whoseMove=(byte)(1-whoseMove);
 			if(whoseMove==WT) fullmoveClock++;
 			
-			computeLegalMoves();
+			if(len==2) computeLegalMoves2();
+			else if(len==3) computeLegalMoves3();
+			else if(len==4) computeLegalMoves4();
+			else if(len==5) computeLegalMoves5();
+			else if(len==6) computeLegalMoves6();
+			//else if(len==7) computeLegalMoves7();
+			else computeLegalMoves();
+			
 			positionDataReady=false;
 		}
 		public void retract() {
