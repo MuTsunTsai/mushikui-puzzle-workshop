@@ -33,19 +33,19 @@ namespace Mushikui_Puzzle_Workshop {
 			notifyIcon.Icon=Icon;
 			notifyIcon.Text=Text;
 
-			//EN.load("rn6/p4k1p/6p1/1pP1p3/8/7P/P4P1P/2K4R w - b6 0 21");
+			EN.load(chessEngine2.initFEN);
 
-			SW.Start();
-			EN.test();
-			SW.Stop();
-			MessageBox.Show(SW.Elapsed.TotalSeconds.ToString());
-			SW.Reset();
+			//SW.Start();
+			//EN.test();
+			//SW.Stop();
+			//MessageBox.Show(SW.Elapsed.TotalSeconds.ToString());
+			//SW.Reset();
 
-			SW.Start();
-			EN.test2();
-			SW.Stop();
-			MessageBox.Show(SW.Elapsed.TotalSeconds.ToString());
-			SW.Reset();
+			//SW.Start();
+			//EN.test2();
+			//SW.Stop();
+			//MessageBox.Show(SW.Elapsed.TotalSeconds.ToString());
+			//SW.Reset();
 
 			//chessEngine E=new chessEngine("rn6/p4k1p/6p1/1pP1p3/8/7P/P4P1P/2K4R w - b6 0 21");
 			//SW.Start();
@@ -338,7 +338,7 @@ namespace Mushikui_Puzzle_Workshop {
 			for(k=0;k<probList.Length;k++) {
 				goalList[k]=new List<int>();
 				prob=probList[k].ToCharArray();
-				for(i=0;i<prob.Length&&i<lengthLimit;i++) {
+				for(i=0;i<prob.Length&&goalList[k].Count<lengthLimit;i++) {
 					if(prob[i]=='?') goalList[k].Add(1);
 					else if(prob[i]=='*') {
 						for(j=0;i<prob.Length&&prob[i]=='*';i++, j++) ;

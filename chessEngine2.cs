@@ -13,81 +13,67 @@ namespace Mushikui_Puzzle_Workshop {
 		/////////////////////////////////
 
 		public void test() {
-			move m;
-			byte ot, nt, so, ta, mi, cp, de;
-			for(int i=0;i<(1<<28);i++) {
-				m=new move(1, 1, 1, 1, 1, 1, 1, 1);
-				ot=m.ot; nt=m.nt; so=m.so; ta=m.ta; mi=m.mi; cp=m.cp; de=m.de;
-			}
 		}
 
 		public void test2() {
-			ulong m;
-			byte ot, nt, so, ta, mi, cp, de;
-			for(int i=0;i<(1<<28);i++) {
-				m=1|(1<<6)|(1<<12)|(1<<18)|(1<<22)|(1<<26)|(1<<30)|(1<<32);
-				so=(byte)(m&0x3F);
-				ta=(byte)((m>>6)&0x3F);
-				de=(byte)((m>>12)&0x3F);
-				ot=(byte)((m>>18)&0xF);
-				nt=(byte)((m>>22)&0xF);
-				cp=(byte)((m>>26)&0xF);
-				mi=(byte)((m>>30)&3);
-			}
 		}
 
 		/////////////////////////////////
 		// 棋步資料結構
 		/////////////////////////////////
 
-		private struct move {
-			public byte so;		// 起點
-			public byte ta;		// 終點
-			public byte de;		// 吃子點（幾乎都會等於終點，除了吃過路兵的情況外）
-			
-			public byte ot;		// 棋子原始類型
-			public byte nt;		// 棋子新類型（幾乎都等於原始類型，除了升變之外）
-			public byte cp;		// 吃子類型
-			
-			public byte mi;		// 棋步 0=普通 1=O-O 2=O-O-O 3=ep
-			public byte tag;	// 標籤 0=未知 1=普通 2=將軍 3=將死
-			public byte disamb;	// 消歧義 0=不用 1=行 2=列 3=行列
-			
-			private byte le;	// 基底長度（除了消歧義跟將軍記號之外的長度）
-			
-			public move(byte source, byte target, byte delPt, byte oldType, byte newType, byte capture, byte moveIndicator, byte length) {
-				so=source; ta=target; de=delPt; ot=oldType; nt=newType; cp=capture; mi=moveIndicator; tag=0; disamb=0; le=length;
-			}
-			
-			public int ToLength() {
-				int c=le;
-				if(disamb!=b0) { c++; if(disamb==b3) c++;}
-				if(tag==b2) c++;
-				return c;
-			}
-			public override string ToString() {
-				string s="";					
-				if(mi==OOMove) s="O-O";
-				else if(mi==OOOMove) s="O-O-O";
-				else {
-					if((ot&lMask)==wP) {
-						if(cp==b0) s=cor(ta);
-						else s=col(so)+"x"+cor(ta)+(mi==epMove?"ep":"");
-						if(ot!=nt) s+="="+pieceName[nt&lMask];
-					} else {
-						s+=pieceName[ot&lMask];
-						if(disamb==b1) s+=col(so);
-						else if(disamb==b2) s+=row(so);
-						else if(disamb==b3) s+=cor(so);
-						if(cp!=0) s+="x"; s+=cor(ta);
-					}				
-				}
-				if(tag==b2) s+="+";
-				if(tag==b3) s+="#";
-				return s;
-			}
+		// 位元配置：
+		// 8 位元 so 起點
+		// 8 位元 ta 終點
+		// 8 位元 de 吃子點（幾乎都會等於終點，除了吃過路兵的情況外）
+		// 4 位元 ot 棋子原始類型
+		// 4 位元 nt 棋子新類型（幾乎都等於原始類型，除了升變之外）
+		// 4 位元 cp 吃子類型
+		// 4 位元 mi 棋步 0=普通 1=O-O 2=O-O-O 3=ep
+		// 4 位元 tag 標籤 0=未知 1=普通 2=將軍 3=將死
+		// 4 位元 disamb 消歧義 0=不用 1=行 2=列 3=行列
+		// 4 位元 le 基底長度（除了消歧義跟將軍記號之外的長度）
+
+		private int moveToLength(ulong m) {
+			byte tag=(byte)((m>>40)&0xF);
+			byte disamb=(byte)((m>>44)&0xF);
+			int le=(int)(m>>48);
+
+			if(disamb!=b0) { le++; if(disamb==b3) le++; }
+			if(tag==b2) le++;
+			return le;
 		}
-	
+		private string moveToString(ulong m) {
+			byte so=(byte)(m&0x3F);
+			byte ta=(byte)((m>>8)&0x3F);
+			byte ot=(byte)((m>>24)&0xF);
+			byte nt=(byte)((m>>28)&0xF);
+			byte cp=(byte)((m>>32)&0xF);
+			byte mi=(byte)((m>>36)&0xF);
+			byte tag=(byte)((m>>40)&0xF);
+			byte disamb=(byte)((m>>44)&0xF);
+		
+			string s="";
+			if(mi==OOMove) s="O-O";
+			else if(mi==OOOMove) s="O-O-O";
+			else {
+				if((ot&lMask)==wP) {
+					if(cp==b0) s=cor(ta);
+					else s=col(so)+"x"+cor(ta)+(mi==epMove?"ep":"");
+					if(ot!=nt) s+="="+pieceName[nt&lMask];
+				} else {
+					s+=pieceName[ot&lMask];
+					if(disamb==b1) s+=col(so);
+					else if(disamb==b2) s+=row(so);
+					else if(disamb==b3) s+=cor(so);
+					if(cp!=0) s+="x"; s+=cor(ta);
+				}
+			}
+			if(tag==b2) s+="+";
+			if(tag==b3) s+="#";
+			return s;
+		}
+
 		/////////////////////////////////
 		// 常數
 		/////////////////////////////////
@@ -182,20 +168,20 @@ namespace Mushikui_Puzzle_Workshop {
 		// 棋步資料
 		/////////////////////////////////
 
-		public int moveLength(int i) { return moveList[depth, i].ToLength();}
-		public byte moveCount { get { return moveListLength[depth];} private set {}}
+		public int moveLength(int i) { return moveToLength(moveList[depth, i]);}
+		public byte moveCount { get { return moveListLength[depth];}}
 
-		private move[,]		moveList		=new move[maxDepth,maxVar];
+		private ulong[,]	moveList		=new ulong[maxDepth,maxVar];
 		private byte[]		moveListLength	=new byte[maxDepth];
 		
-		private move[]		moveHis			=new move[maxDepth];
+		private ulong[]		moveHis			=new ulong[maxDepth];
 
 		private static char[] pieceName= { ' ', 'P', 'N', 'K', ' ', 'R', 'B', 'Q', ' ', 'p', 'n', 'k', ' ', 'r', 'b', 'q'};
 		private static char col(byte p) { return (char)((p&lMask)+'a'); }
 		private static char row(byte p) { return (char)((p>>3)+'1'); }
 		private static string cor(byte p) { return ""+col(p)+row(p); }
 		
-		private string castlingString(byte c) {
+		private static string castlingString(byte c) {
 			if(c==b0) return "-";
 			else return ((c&cwK)==cwK?"K":"")+((c&cwQ)==cwQ?"Q":"")+((c&cbK)==cbK?"k":"")+((c&cbQ)==cbQ?"q":"");
 		}
@@ -205,7 +191,7 @@ namespace Mushikui_Puzzle_Workshop {
 				string s="";
 				for(i=0;i<depth;i++) {
 					if(i==0||i%2==startSide) { s+=(j+startMove-1)+(startSide==BC&&i==0?"...":"."); j++; }
-					s+=moveHis[i].ToString()+" ";
+					s+=moveToString(moveHis[i])+" ";
 				}
 				return s;
 			}
@@ -426,7 +412,7 @@ namespace Mushikui_Puzzle_Workshop {
 				if(enPassantState[depth]!=NS) {
 					result=slideHitLU[p, data]; p1=(byte)(result&0xFF); p2=(byte)(result>>8);
 					if((position[p2]==bB||position[p2]==bQ)&&p1==enPassantState[depth]-8) return -1;
-				}				
+				}
 				
 			} else {
 				if((pieceRangeK[p]&piecePos[wK])!=0) return -1;								// 如果發現國王，直接傳回錯誤	
@@ -470,26 +456,17 @@ namespace Mushikui_Puzzle_Workshop {
 		// 行棋函數
 		/////////////////////////////////
 
-		//private void addPiece(byte t, byte p) {
-		//    position[p]=t; piecePos[t]|=mask[p];
-		//    occuH|=mask[p]; occuV|=maskV[p];
-		//    occuFS|=maskFS[p]; occuBS|=maskBS[p];
-		//}
-		//private void delPiece(byte t, byte p) {
-		//    position[p]=0; piecePos[t]^=mask[p];
-		//    occuH^=mask[p]; occuV^=maskV[p];
-		//    occuFS^=maskFS[p]; occuBS^=maskBS[p];
-		//}
-
 		public void play(int i) {
-			move m=moveList[depth, i];
+			ulong m=moveList[depth, i];
 			moveHis[depth]=m;
-			byte ot=m.ot, nt=m.nt, so=m.so, ta=m.ta, mi=m.mi, cp=m.cp, de=m.de;
-
-			//if(cp!=0) delPiece(cp, de);
-			//delPiece(ot, so);
-			//addPiece(nt, ta);
-
+			byte so=(byte)(m&0x3F);
+			byte ta=(byte)((m>>8)&0x3F);
+			byte de=(byte)((m>>16)&0x3F);
+			byte ot=(byte)((m>>24)&0xF);
+			byte nt=(byte)((m>>28)&0xF);
+			byte cp=(byte)((m>>32)&0xF);
+			byte mi=(byte)((m>>36)&0xF);
+			
 			if(cp!=0) {
 				piecePos[cp]^=mask[de];
 				if(mi==epMove) {
@@ -554,12 +531,14 @@ namespace Mushikui_Puzzle_Workshop {
 		}
 		public void retract() {
 			if(depth==0) return;
-			move m=moveHis[depth-1];
-			byte ot=m.ot, nt=m.nt, so=m.so, ta=m.ta, mi=m.mi, cp=m.cp, de=m.de;
-
-			//addPiece(ot, so);
-			//delPiece(nt, ta);
-			//if(cp!=0) addPiece(cp, de);
+			ulong m=moveHis[depth-1];
+			byte so=(byte)(m&0x3F);
+			byte ta=(byte)((m>>8)&0x3F);
+			byte de=(byte)((m>>16)&0x3F);
+			byte ot=(byte)((m>>24)&0xF);
+			byte nt=(byte)((m>>28)&0xF);
+			byte cp=(byte)((m>>32)&0xF);
+			byte mi=(byte)((m>>36)&0xF);
 
 			position[so]=ot;
 			piecePos[ot]|=mask[so]; piecePos[nt]^=mask[ta];
